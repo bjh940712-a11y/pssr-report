@@ -5,6 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#16325c">
 <title>현장 촬영 · 기밀시험 결과지</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="공급전점검">
+
 <script src="firebase-config.js"></script>
 <style>
 :root{--navy:#16325c;--navy-2:#1f4580;--teal:#0f8b8d;--teal-soft:#e3f4f4;--bg:#f3f5f8;--line:#dde3ea;--ink:#1b2430;--ink-2:#4a5667;--ink-3:#7b8798;--bad:#c43c3c;--bad-soft:#fbe9e9;--ok:#1d8a4e;--warn:#b7791f;--warn-soft:#fdf3e1}
@@ -72,6 +80,7 @@ input[type=email],input[type=password]{width:100%;border:1px solid #c9d2dd;borde
 <body>
 <header>
   <div class="t">기밀시험 결과지 촬영<small>공급전 안전점검 · 현장 사진함</small></div>
+  <button data-install class="hidden" style="background:#0f8b8d">📲 앱 설치</button>
   <a href="./" style="color:#fff;font-size:13px;text-decoration:none;background:rgba(255,255,255,.12);border-radius:6px;padding:6px 10px">보고서 화면</a>
   <button id="outBtn" class="hidden">로그아웃</button>
 </header>
@@ -286,6 +295,25 @@ class SignPad{
 }
 const SIGN_ROLES = [['user','도시가스 사용자'],['contractor','도시가스 시공자'],['lpg','LPG공급(판매)자'],['supplier','도시가스 공급자(점검자)']];
 
+/* ===== 앱(PWA) 설치 · 화면 저장 ===== */
+let _bip = null;
+const isStandalone = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+const isIOS = () => /iPhone|iPad|iPod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); _bip = e; document.querySelectorAll('[data-install]').forEach(b => b.classList.remove('hidden')); });
+window.addEventListener('appinstalled', () => { _bip = null; document.querySelectorAll('[data-install]').forEach(b => b.classList.add('hidden')); });
+if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol)) window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+function setupAppInstall(){
+  document.querySelectorAll('[data-install]').forEach(b => {
+    if (isStandalone()) { b.classList.add('hidden'); return; }
+    if (isIOS() || _bip) b.classList.remove('hidden');
+    b.onclick = async () => {
+      if (_bip){ _bip.prompt(); try{ await _bip.userChoice; }catch(e){} _bip = null; return; }
+      if (isIOS()) return alert('아이폰·아이패드에서 앱으로 설치하기\n\n1. Safari 아래쪽의 공유 버튼(□↑)을 누릅니다\n2. 「홈 화면에 추가」를 누릅니다\n3. 오른쪽 위 「추가」를 누르면 홈 화면에 「공급전점검」 앱이 생깁니다');
+      alert('브라우저 메뉴(⋮)에서 「앱 설치」 또는 「홈 화면에 추가」를 누르세요.');
+    };
+  });
+}
+
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 function toast(m){ const t = $('#toast'); t.textContent = m; t.classList.add('on'); clearTimeout(toast.h); toast.h = setTimeout(() => t.classList.remove('on'), 2200); }
@@ -471,6 +499,7 @@ window.addEventListener('beforeunload', e => { if (review.length || signData || 
 
 (async () => {
   $('#keepDays').textContent = FieldStore.KEEP_DAYS;
+  setupAppInstall();
   if (!FieldStore.isConfigured()) return show('vCfg');
   let answered = false;
   const fail = msg => { $('#vCfg').innerHTML = `<b>연결 실패</b><p style="font-size:14px;color:var(--ink-2)">${esc(msg)}</p><button class="btn" onclick="location.reload()">다시 시도</button>`; show('vCfg'); };
