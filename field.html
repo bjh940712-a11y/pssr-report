@@ -52,6 +52,8 @@ input[type=email],input[type=password]{width:100%;border:1px solid #c9d2dd;borde
   <button id="outBtn" class="hidden">로그아웃</button>
 </header>
 <main>
+  <!-- 연결 중 -->
+  <div id="vLoad" class="card" style="text-align:center;color:var(--ink-2)"><span class="spin"></span> 연결 중…</div>
   <!-- 설정 없음 -->
   <div id="vCfg" class="card hidden">
     <b>Firebase 설정이 없습니다.</b>
@@ -202,7 +204,7 @@ function b64ToBlob(b64, type){ const bin = atob(b64), u = new Uint8Array(bin.len
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 function toast(m){ const t = $('#toast'); t.textContent = m; t.classList.add('on'); clearTimeout(toast.h); toast.h = setTimeout(() => t.classList.remove('on'), 2200); }
-function show(v){ ['vCfg','vLogin','vMain'].forEach(x => $('#'+x).classList.toggle('hidden', x !== v)); $('#outBtn').classList.toggle('hidden', v !== 'vMain'); }
+function show(v){ ['vLoad','vCfg','vLogin','vMain'].forEach(x => $('#'+x).classList.toggle('hidden', x !== v)); $('#outBtn').classList.toggle('hidden', v !== 'vMain'); }
 const p2 = n => String(n).padStart(2,'0');
 const dayKey = d => `${d.getFullYear()}${p2(d.getMonth()+1)}${p2(d.getDate())}`;
 const hm = d => d ? `${p2(d.getHours())}:${p2(d.getMinutes())}` : '';
@@ -281,8 +283,12 @@ window.addEventListener('beforeunload', e => { if (pending.some(p => !p.err)) { 
 (async () => {
   $('#keepDays').textContent = FieldStore.KEEP_DAYS;
   if (!FieldStore.isConfigured()) return show('vCfg');
-  try{ await FieldStore.init(); }catch(e){ $('#vCfg').innerHTML = `<b>연결 실패</b><p>${esc(FieldStore.errMsg(e))}</p>`; return show('vCfg'); }
+  let answered = false;
+  const fail = msg => { $('#vCfg').innerHTML = `<b>연결 실패</b><p style="font-size:14px;color:var(--ink-2)">${esc(msg)}</p><button class="btn" onclick="location.reload()">다시 시도</button>`; show('vCfg'); };
+  setTimeout(() => { if (!answered) fail('Firebase 서버에 연결하지 못했습니다. 인터넷 연결(와이파이·데이터)을 확인하거나, 회사망이라면 gstatic.com·googleapis.com 접속이 막혀 있는지 확인하세요.'); }, 15000);
+  try{ await FieldStore.init(); }catch(e){ answered = true; return fail(FieldStore.errMsg(e)); }
   FieldStore.onAuth(async u => {
+    answered = true;
     if (!u) return show('vLogin');
     if (!(await FieldStore.checkMember())){ show('vLogin'); $('#inErr').textContent = '등록되지 않은 사용자입니다. 관리자에게 사용자 등록을 요청하세요.'; FieldStore.signOut(); return; }
     show('vMain'); refresh();

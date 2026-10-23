@@ -34,6 +34,9 @@ button{cursor:pointer}
 .tab.on{color:#fff;border-bottom-color:var(--teal)}
 .top .sp{flex:1}
 .top .note{font-size:12px;color:#aebcd2}
+.acct{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:6px;padding:6px 12px;font-weight:600;font-size:13px;white-space:nowrap}
+.acct:hover{background:rgba(255,255,255,.2)}
+.acct.on{background:var(--teal);border-color:var(--teal)}
 
 /* ---------- common ---------- */
 .btn{border:1px solid var(--line-2);background:#fff;border-radius:6px;padding:7px 14px;font-weight:600;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
@@ -240,7 +243,8 @@ body.inbox-on #p-rep{padding-right:420px}
       <button class="tab" data-tab="set">기본값 설정</button>
     </nav>
     <div class="sp"></div>
-    <div class="note">모든 데이터는 이 PC 브라우저에만 저장됩니다</div>
+    <div class="note">ERP 자료는 이 PC 브라우저에만 저장됩니다</div>
+    <button class="acct" id="acctBtn" title="현장 사진함을 쓰려면 직원 계정으로 로그인하세요">👤 직원 로그인</button>
   </header>
 
   <!-- ===== 보고서 작성 ===== -->
@@ -622,6 +626,14 @@ function cellValues(v){
 }
 
 /* ================= HTML report ================= */
+// 글꼴 차이로 칸을 넘치는 글자는 칸에 맞게 조금씩 줄임 (엑셀 칸 크기는 그대로 유지)
+function fitCells(root){
+  root.querySelectorAll('.rpt .c').forEach(el => {
+    let fs = parseFloat(getComputedStyle(el).fontSize), n = 0;
+    const over = () => el.classList.contains('w') ? el.scrollHeight > el.clientHeight + 1 : el.firstChild && el.firstChild.offsetWidth > el.clientWidth + 1 && getComputedStyle(el).justifyContent !== 'flex-start';
+    while (over() && fs > 6 && n++ < 20){ fs -= 0.5; el.style.fontSize = fs + 'px'; }
+  });
+}
 function reportHtml(v){
   const m = cellValues(v);
   const body = TPL.html.replace(/\{\{([A-Z]+\d+)\}\}/g, (_, c) => esc(m[c] ?? '').replace(/\n/g,'<br>'));
@@ -684,6 +696,7 @@ async function exportXlsx(recs){
 function printRecs(recs){
   if (!recs.length) return toast('선택된 건이 없습니다');
   $('#printArea').innerHTML = recs.map(r => reportHtml(view(r))).join('');
+  $('#printArea').style.display = 'block'; fitCells($('#printArea')); $('#printArea').style.display = '';
   setTimeout(() => window.print(), 50);
 }
 
@@ -699,6 +712,7 @@ function ensurePdfLibs(){
 let pdfBusy = false;
 async function reportCanvas(rec, host){
   host.innerHTML = reportHtml(view(rec));
+  fitCells(host);
   return window.html2canvas(host.firstChild, {scale:3, backgroundColor:'#ffffff', logging:false});
 }
 async function exportPdf(recs){
@@ -864,6 +878,7 @@ function renderPreview(){
   const pv = $('#pvBox'), stage = pv.parentElement;
   pv.style.width = '0px'; pv.style.height = '0px';
   pv.innerHTML = `<div class="paper">${reportHtml(view(rec))}</div>`;
+  fitCells(pv);
   const paper = pv.firstChild, W = 793.7, H = 1122.5;   // A4 at 96dpi
   const avail = Math.max(260, stage.clientWidth - 28);
   const sc = Math.min(1, avail / W);
@@ -1382,7 +1397,7 @@ async function inboxBoot(){
     FieldStore.onAuth(async u => {
       if (inboxUnsub){ inboxUnsub(); inboxUnsub = null; }
       inbox = [];
-      if (!u){ inboxState = 'login'; setInboxCount(); renderInbox(); return; }
+      if (!u){ inboxState = 'login'; inbox = []; setInboxCount(); renderInbox(); return; }
       if (!(await FieldStore.checkMember())){ inboxState = 'nomember'; renderInbox(); return; }
       inboxState = 'on';
       FieldStore.purgeExpired().catch(() => {});
@@ -1393,9 +1408,19 @@ async function inboxBoot(){
   }catch(e){ inboxState = 'err'; inboxErr = FieldStore.errMsg(e); }
 }
 let inboxErr = '';
+function setAcct(){
+  const b = $('#acctBtn'), u = inboxState === 'on' ? FieldStore.user() : null;
+  b.classList.toggle('on', !!u);
+  b.textContent = u ? `👤 ${u.email.split('@')[0]} · 현장 사진함` : '👤 직원 로그인';
+}
+$('#acctBtn').onclick = () => {
+  if (!$('#p-rep').classList.contains('hidden')) { $('#drawer').classList.contains('on') ? closeInbox() : openInbox(); return; }
+  document.querySelector('.tab[data-tab=rep]').click(); openInbox();
+};
 function openInbox(){ $('#drawer').classList.add('on'); document.body.classList.add('inbox-on'); renderInbox(); setTimeout(renderPreview, 250); }
 function closeInbox(){ $('#drawer').classList.remove('on'); document.body.classList.remove('inbox-on'); setTimeout(renderPreview, 250); }
 function renderInbox(){
+  setAcct();
   if (!$('#drawer').classList.contains('on')) return;
   const b = $('#drBody'), f = $('#drFoot');
   $('#drOut').classList.toggle('hidden', !(inboxState === 'on' || inboxState === 'nomember'));
