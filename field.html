@@ -416,7 +416,11 @@ function buildPads(){
   SIGN_ROLES.forEach(([r]) => { const c = document.querySelector(`canvas[data-role="${r}"]`); pads[r] = new SignPad(c);
     c.addEventListener('signchange', () => c.closest('.pad').classList.toggle('done', !pads[r].empty)); });
 }
+let curMode = 'photo';
+window.addEventListener('hashchange', () => { if (!$('#vMain').classList.contains('hidden')) setMode(location.hash === '#sign' ? 'sign' : 'photo'); });
 function setMode(m){
+  curMode = m;
+  if (history.replaceState) history.replaceState(null, '', m === 'sign' ? '#sign' : '#photo');
   document.querySelectorAll('.mtabs button').forEach(b => b.classList.toggle('on', b.dataset.mode === m));
   $('#mPhoto').classList.toggle('hidden', m !== 'photo'); $('#mSign').classList.toggle('hidden', m !== 'sign');
   if (m === 'sign') setTimeout(buildPads, 30);
@@ -477,7 +481,7 @@ window.addEventListener('beforeunload', e => { if (review.length || signData || 
     if (!u) return show('vLogin');
     if (!(await FieldStore.checkMember())){ show('vLogin'); $('#inErr').textContent = '등록되지 않은 사용자입니다. 관리자에게 사용자 등록을 요청하세요.'; FieldStore.signOut(); return; }
     show('vMain'); refresh();
-    if (location.hash === '#sign') setMode('sign');
+    setMode(location.hash === '#sign' ? 'sign' : (location.hash === '#photo' ? 'photo' : curMode));
   });
 })();
 </script>

@@ -300,15 +300,15 @@ body.inbox-on #p-rep{padding-right:420px}
     </nav>
     <div class="sp"></div>
     <div class="note">ERP 자료는 이 PC 브라우저에만 저장됩니다</div>
-    <a class="acct cam" id="signLink" href="field.html#sign" title="현장에서 사용자·시공자 서명을 받아 사진함으로 보냅니다">✍️ 서명 받기</a>
-    <a class="acct cam" id="camLink" href="field.html" title="현장에서 기밀시험 결과지를 촬영해 사진함으로 보냅니다">📷 현장 촬영</a>
+    <a class="acct cam" id="signLink" href="field.html?v=3#sign" title="현장에서 사용자·시공자 서명을 받아 사진함으로 보냅니다">✍️ 서명 받기</a>
+    <a class="acct cam" id="camLink" href="field.html?v=3" title="현장에서 기밀시험 결과지를 촬영해 사진함으로 보냅니다">📷 현장 촬영</a>
     <button class="acct" id="acctBtn" title="현장 사진함을 쓰려면 직원 계정으로 로그인하세요">👤 직원 로그인</button>
   </header>
 
   <!-- ===== 보고서 작성 ===== -->
   <section id="p-rep" class="wrap">
-    <a class="m-cam" href="field.html"><span class="i">📷</span><span><b>현장 촬영 화면 열기</b><small>기밀시험 결과지를 찍어 사무실 PC의 현장 사진함으로 보냅니다</small></span></a>
-    <a class="m-cam" href="field.html#sign" style="background:var(--teal)"><span class="i">✍️</span><span><b>서명 받기 화면 열기</b><small>안전교육·개인정보 동의서 서명(사용자·시공자 등)을 받습니다</small></span></a>
+    <a class="m-cam" href="field.html?v=3"><span class="i">📷</span><span><b>현장 촬영 화면 열기</b><small>기밀시험 결과지를 찍어 사무실 PC의 현장 사진함으로 보냅니다</small></span></a>
+    <a class="m-cam" href="field.html?v=3#sign" style="background:var(--teal)"><span class="i">✍️</span><span><b>서명 받기 화면 열기</b><small>안전교육·개인정보 동의서 서명(사용자·시공자 등)을 받습니다</small></span></a>
     <div id="dropZone" class="drop">
       <div class="ic">⇪</div>
       <h2>ERP 엑셀 파일을 여기에 끌어다 놓으세요</h2>
@@ -1618,7 +1618,7 @@ function renderInbox(){
     return;
   }
   const recName = cur ? view(rows().find(r => r.id === cur) || {src:{}}).name : '';
-  b.innerHTML = `<a class="btn teal" href="field.html" target="_blank" style="width:100%;justify-content:center;margin-bottom:10px;text-decoration:none">📷 현장 촬영 화면 열기 (새 탭)</a>
+  b.innerHTML = `<a class="btn teal" href="field.html?v=3" target="_blank" style="width:100%;justify-content:center;margin-bottom:10px;text-decoration:none">📷 현장 촬영 화면 열기 (새 탭)</a>
     <label style="display:flex;gap:6px;align-items:center;font-size:13px;margin:0 0 10px;color:var(--ink-2)"><input type="checkbox" id="scanFix" ${store.get('pssr.scanfix', true)?'checked':''}> 첨부할 때 <b>문서 보정</b> (종이 배경 하얗게·글씨 진하게) 후 PDF로 변환</label>
     <div class="dr-note">사진을 <b>왼쪽 편집 화면의 「추가 첨부파일」 칸으로 끌어다 놓거나</b> 「현재 건에 첨부」를 누르세요. 사진은 병합 여부와 관계없이 <b>업로드 3일 뒤 서버에서 자동 삭제</b>됩니다.</div>` +
     (inbox.length ? `<div class="ph-grid">${inbox.map(p => {
