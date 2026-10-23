@@ -575,11 +575,11 @@ function b64ToBlob(b64, type){ const bin = atob(b64), u = new Uint8Array(bin.len
 
 /* 서명 패드 (손가락·펜·마우스) */
 class SignPad{
-  constructor(canvas){
-    this.c = canvas; this.g = canvas.getContext('2d'); this.empty = true; this.pts = null;
+  constructor(canvas, opts = {}){
+    this.c = canvas; this.g = canvas.getContext('2d'); this.empty = true; this.pts = null; this.img = ''; this.lw = opts.lineWidth || 2.8;
     canvas.style.touchAction = 'none';
-    const pos = e => { const r = this.c.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
-    canvas.addEventListener('pointerdown', e => { e.preventDefault(); canvas.setPointerCapture(e.pointerId); this.pts = [pos(e)]; this.dot(this.pts[0]); this.empty = false; });
+    const pos = opts.pos || (e => { const r = this.c.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; });
+    canvas.addEventListener('pointerdown', e => { e.preventDefault(); canvas.setPointerCapture(e.pointerId); this.pts = [pos(e)]; this.dot(this.pts[0]); this.empty = false; this.img = ''; });
     canvas.addEventListener('pointermove', e => { if (!this.pts) return; e.preventDefault(); const p = pos(e), q = this.pts[this.pts.length - 1];
       if (Math.hypot(p[0]-q[0], p[1]-q[1]) < 1) return; this.pts.push(p); this.seg(); });
     const end = () => { this.pts = null; canvas.dispatchEvent(new Event('signchange')); };
@@ -587,12 +587,19 @@ class SignPad{
     this.resize();
   }
   resize(){
-    const r = this.c.getBoundingClientRect(), d = window.devicePixelRatio || 1;
-    this.c.width = Math.max(1, Math.round(r.width * d)); this.c.height = Math.max(1, Math.round(r.height * d));
-    this.g.setTransform(d, 0, 0, d, 0, 0); this.g.lineCap = 'round'; this.g.lineJoin = 'round'; this.g.strokeStyle = '#111'; this.g.fillStyle = '#111'; this.g.lineWidth = 2.8;
+    const d = window.devicePixelRatio || 1, w = this.c.offsetWidth, h = this.c.offsetHeight;   // 화면 회전(transform)과 무관한 실제 크기
+    this.c.width = Math.max(1, Math.round(w * d)); this.c.height = Math.max(1, Math.round(h * d));
+    this.g.setTransform(d, 0, 0, d, 0, 0); this.g.lineCap = 'round'; this.g.lineJoin = 'round'; this.g.strokeStyle = '#111'; this.g.fillStyle = '#111'; this.g.lineWidth = this.lw;
     this.clear();
   }
-  clear(){ this.g.save(); this.g.setTransform(1,0,0,1,0,0); this.g.clearRect(0, 0, this.c.width, this.c.height); this.g.restore(); this.empty = true; this.c.dispatchEvent(new Event('signchange')); }
+  clear(){ this.g.save(); this.g.setTransform(1,0,0,1,0,0); this.g.clearRect(0, 0, this.c.width, this.c.height); this.g.restore(); this.empty = true; this.img = ''; this.c.dispatchEvent(new Event('signchange')); }
+  // 큰 서명판에서 받은 서명을 이 칸에 넣기 (원본 화질 유지)
+  setImage(png){
+    return new Promise(ok => { const im = new Image(); im.onload = () => {
+      this.clear(); const W = this.c.offsetWidth, H = this.c.offsetHeight, k = Math.min((W - 16) / im.width, (H - 16) / im.height, 1);
+      this.g.drawImage(im, (W - im.width * k) / 2, (H - im.height * k) / 2, im.width * k, im.height * k);
+      this.empty = false; this.img = png; this.c.dispatchEvent(new Event('signchange')); ok(); }; im.src = png; });
+  }
   dot(p){ this.g.beginPath(); this.g.arc(p[0], p[1], 1.4, 0, Math.PI * 2); this.g.fill(); }
   seg(){
     const n = this.pts.length, g = this.g;
@@ -602,6 +609,7 @@ class SignPad{
   }
   toPNG(maxW = 600){
     if (this.empty) return '';
+    if (this.img) return this.img;
     const W = this.c.width, H = this.c.height, d = this.g.getImageData(0, 0, W, H).data;
     let x0 = W, y0 = H, x1 = -1, y1 = -1;
     for (let y = 0; y < H; y += 2) for (let x = 0; x < W; x += 2) if (d[(y * W + x) * 4 + 3] > 20){ if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }

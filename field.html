@@ -57,6 +57,24 @@ main{padding:16px;max-width:560px;margin:0 auto}
 .pad-h button{border:1px solid var(--line);background:#fff;border-radius:7px;padding:4px 10px;font-size:13px}
 .pad canvas{display:block;width:100%;height:150px;background:repeating-linear-gradient(transparent 0 118px,#d6dde6 118px 119px,transparent 119px 150px)}
 .pad.done .pad-h b::after{content:' ✓';color:var(--ok)}
+.bigstart{display:block;width:100%;margin:0 0 12px;border:0;border-radius:12px;background:var(--teal);color:#fff;font-weight:700;font-size:16px;padding:14px;text-align:center}
+.bigstart small{display:block;font-weight:400;font-size:12px;opacity:.85;margin-top:2px}
+/* 가로 큰 서명판 */
+.bp{position:fixed;inset:0;z-index:100;background:#1b2430;overflow:hidden;touch-action:none}
+.bp-in{position:absolute;top:0;left:0;display:flex;flex-direction:column;background:#fff}
+.bp-in.rot{transform-origin:0 0;transform:translateX(100vw) rotate(90deg)}
+.bp-h{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--navy);color:#fff;flex:none}
+.bp-h b{font-size:17px;flex:1}
+.bp-h .stp{font-size:12px;color:#aebcd2}
+.bp-h button{border:0;border-radius:8px;padding:9px 14px;font-weight:700;font-size:15px;background:rgba(255,255,255,.14);color:#fff}
+.bp-h button.ok{background:var(--teal)}
+.bp-c{flex:1;position:relative}
+.bp-c canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.bp-line{position:absolute;left:6%;right:6%;bottom:24%;border-bottom:2px solid #c9d2dd;pointer-events:none}
+.bp-x{position:absolute;left:6%;bottom:calc(24% + 6px);font-size:28px;color:#c9d2dd;pointer-events:none}
+.bp-turn{position:absolute;inset:0;display:grid;place-items:center;background:rgba(22,50,92,.82);color:#fff;font-size:20px;text-align:center;padding:20px;transition:opacity .5s;pointer-events:none}
+.bp-turn.off{opacity:0}
+.bp-hint{position:absolute;right:6%;bottom:calc(24% - 28px);font-size:13px;color:#aab3c0;pointer-events:none}
 h3{font-size:15px;margin:22px 2px 10px;color:var(--navy);display:flex;align-items:center;gap:8px}
 h3 span{font-weight:400;color:var(--ink-3);font-size:13px}
 .list{display:flex;flex-direction:column;gap:10px}
@@ -255,11 +273,11 @@ function b64ToBlob(b64, type){ const bin = atob(b64), u = new Uint8Array(bin.len
 
 /* 서명 패드 (손가락·펜·마우스) */
 class SignPad{
-  constructor(canvas){
-    this.c = canvas; this.g = canvas.getContext('2d'); this.empty = true; this.pts = null;
+  constructor(canvas, opts = {}){
+    this.c = canvas; this.g = canvas.getContext('2d'); this.empty = true; this.pts = null; this.img = ''; this.lw = opts.lineWidth || 2.8;
     canvas.style.touchAction = 'none';
-    const pos = e => { const r = this.c.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
-    canvas.addEventListener('pointerdown', e => { e.preventDefault(); canvas.setPointerCapture(e.pointerId); this.pts = [pos(e)]; this.dot(this.pts[0]); this.empty = false; });
+    const pos = opts.pos || (e => { const r = this.c.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; });
+    canvas.addEventListener('pointerdown', e => { e.preventDefault(); canvas.setPointerCapture(e.pointerId); this.pts = [pos(e)]; this.dot(this.pts[0]); this.empty = false; this.img = ''; });
     canvas.addEventListener('pointermove', e => { if (!this.pts) return; e.preventDefault(); const p = pos(e), q = this.pts[this.pts.length - 1];
       if (Math.hypot(p[0]-q[0], p[1]-q[1]) < 1) return; this.pts.push(p); this.seg(); });
     const end = () => { this.pts = null; canvas.dispatchEvent(new Event('signchange')); };
@@ -267,12 +285,19 @@ class SignPad{
     this.resize();
   }
   resize(){
-    const r = this.c.getBoundingClientRect(), d = window.devicePixelRatio || 1;
-    this.c.width = Math.max(1, Math.round(r.width * d)); this.c.height = Math.max(1, Math.round(r.height * d));
-    this.g.setTransform(d, 0, 0, d, 0, 0); this.g.lineCap = 'round'; this.g.lineJoin = 'round'; this.g.strokeStyle = '#111'; this.g.fillStyle = '#111'; this.g.lineWidth = 2.8;
+    const d = window.devicePixelRatio || 1, w = this.c.offsetWidth, h = this.c.offsetHeight;   // 화면 회전(transform)과 무관한 실제 크기
+    this.c.width = Math.max(1, Math.round(w * d)); this.c.height = Math.max(1, Math.round(h * d));
+    this.g.setTransform(d, 0, 0, d, 0, 0); this.g.lineCap = 'round'; this.g.lineJoin = 'round'; this.g.strokeStyle = '#111'; this.g.fillStyle = '#111'; this.g.lineWidth = this.lw;
     this.clear();
   }
-  clear(){ this.g.save(); this.g.setTransform(1,0,0,1,0,0); this.g.clearRect(0, 0, this.c.width, this.c.height); this.g.restore(); this.empty = true; this.c.dispatchEvent(new Event('signchange')); }
+  clear(){ this.g.save(); this.g.setTransform(1,0,0,1,0,0); this.g.clearRect(0, 0, this.c.width, this.c.height); this.g.restore(); this.empty = true; this.img = ''; this.c.dispatchEvent(new Event('signchange')); }
+  // 큰 서명판에서 받은 서명을 이 칸에 넣기 (원본 화질 유지)
+  setImage(png){
+    return new Promise(ok => { const im = new Image(); im.onload = () => {
+      this.clear(); const W = this.c.offsetWidth, H = this.c.offsetHeight, k = Math.min((W - 16) / im.width, (H - 16) / im.height, 1);
+      this.g.drawImage(im, (W - im.width * k) / 2, (H - im.height * k) / 2, im.width * k, im.height * k);
+      this.empty = false; this.img = png; this.c.dispatchEvent(new Event('signchange')); ok(); }; im.src = png; });
+  }
   dot(p){ this.g.beginPath(); this.g.arc(p[0], p[1], 1.4, 0, Math.PI * 2); this.g.fill(); }
   seg(){
     const n = this.pts.length, g = this.g;
@@ -282,6 +307,7 @@ class SignPad{
   }
   toPNG(maxW = 600){
     if (this.empty) return '';
+    if (this.img) return this.img;
     const W = this.c.width, H = this.c.height, d = this.g.getImageData(0, 0, W, H).data;
     let x0 = W, y0 = H, x1 = -1, y1 = -1;
     for (let y = 0; y < H; y += 2) for (let x = 0; x < W; x += 2) if (d[(y * W + x) * 4 + 3] > 20){ if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
@@ -440,12 +466,64 @@ const pads = {};
 let flags = {consent:'동의', lpg:'해당없음'}, signData = null;
 function buildPads(){
   if (Object.keys(pads).length) return;
-  $('#pads').innerHTML = SIGN_ROLES.map(([r, l]) => `<div class="pad" data-pad="${r}"><div class="pad-h"><b>${l}</b>${r==='user'?'<span class="req">필수</span>':'<span class="opt">해당 시</span>'}<button data-clear="${r}">지우기</button></div><canvas data-role="${r}"></canvas></div>`).join('');
+  $('#pads').innerHTML = `<button class="bigstart" data-bigall>🔄 가로 화면으로 크게 서명하기<small>휴대폰을 옆으로 돌려 사용자부터 차례로 서명</small></button>` +
+    SIGN_ROLES.map(([r, l]) => `<div class="pad" data-pad="${r}"><div class="pad-h"><b>${l}</b>${r==='user'?'<span class="req">필수</span>':'<span class="opt">해당 시</span>'}<button data-big="${r}">⤢ 크게</button><button data-clear="${r}">지우기</button></div><canvas data-role="${r}"></canvas></div>`).join('');
   SIGN_ROLES.forEach(([r]) => { const c = document.querySelector(`canvas[data-role="${r}"]`); pads[r] = new SignPad(c);
     c.addEventListener('signchange', () => c.closest('.pad').classList.toggle('done', !pads[r].empty)); });
 }
 let curMode = 'photo';
 window.addEventListener('hashchange', () => { if (!$('#vMain').classList.contains('hidden')) setMode(location.hash === '#sign' ? 'sign' : 'photo'); });
+/* 가로 큰 서명판: 가능하면 전체화면+가로 고정, 안 되면 서명판을 90° 돌려서 표시 */
+async function openBigPad(role, chain){
+  let locked = false;
+  const portrait = () => window.innerHeight > window.innerWidth;
+  if (portrait()){
+    try{ if (document.documentElement.requestFullscreen) await document.documentElement.requestFullscreen({navigationUI:'hide'}); await screen.orientation.lock('landscape'); locked = true; }
+    catch(e){ if (document.fullscreenElement) try{ await document.exitFullscreen(); }catch(_){} }
+    if (locked) await new Promise(ok => setTimeout(ok, 450));
+  }
+  const rot = portrait();            // 아직 세로면 서명판을 돌려서 표시 (휴대폰을 왼쪽으로 눕혀 사용)
+  const W = rot ? window.innerHeight : window.innerWidth, H = rot ? window.innerWidth : window.innerHeight;
+  const ov = document.createElement('div'); ov.className = 'bp';
+  const idx = () => SIGN_ROLES.findIndex(x => x[0] === role);
+  ov.innerHTML = `<div class="bp-in ${rot ? 'rot' : ''}" style="width:${W}px;height:${H}px">
+    <div class="bp-h"><b></b><span class="stp"></span><button data-bp="clear">지우기</button><button data-bp="close">닫기</button><button data-bp="ok" class="ok"></button></div>
+    <div class="bp-c"><canvas></canvas><div class="bp-line"></div><div class="bp-x">✕</div><div class="bp-hint">이 선 위에 크게 서명하세요</div>${rot ? '<div class="bp-turn">📱↺ 휴대폰을 <b>왼쪽으로 눕혀</b> 가로로 잡아 주세요</div>' : ''}</div></div>`;
+  if (rot) setTimeout(() => { const t = ov.querySelector('.bp-turn'); if (t) t.classList.add('off'); }, 2800);
+  document.body.appendChild(ov);
+  const inner = ov.firstElementChild, cv = ov.querySelector('canvas');
+  const pos = e => {   // 화면 좌표 → 서명판 좌표 (회전 보정)
+    const lx = rot ? e.clientY : e.clientX, ly = rot ? window.innerWidth - e.clientX : e.clientY;
+    return [lx - cv.offsetParent.offsetLeft - cv.offsetLeft, ly - cv.offsetParent.offsetTop - cv.offsetTop];
+  };
+  let big;
+  const setRole = r => {
+    role = r; const [, label] = SIGN_ROLES[idx()];
+    ov.querySelector('.bp-h b').textContent = `${label} 서명`;
+    ov.querySelector('.stp').textContent = chain ? `${idx() + 1} / ${SIGN_ROLES.length}` : '';
+    ov.querySelector('[data-bp="ok"]').textContent = chain && idx() < SIGN_ROLES.length - 1 ? '완료 · 다음 ▶' : '✓ 완료';
+    big.clear();
+  };
+  requestAnimationFrame(() => { big = new SignPad(cv, {pos, lineWidth: 4}); setRole(role); });
+  const close = async () => {
+    ov.remove();
+    if (locked){ try{ screen.orientation.unlock(); }catch(e){} try{ if (document.fullscreenElement) await document.exitFullscreen(); }catch(e){} }
+  };
+  ov.addEventListener('click', async e => {
+    const b = e.target.closest('[data-bp]'); if (!b) return;
+    if (b.dataset.bp === 'clear') big.clear();
+    else if (b.dataset.bp === 'close') close();
+    else if (b.dataset.bp === 'ok'){
+      const skipped = big.empty;
+      if (!skipped) await pads[role].setImage(big.toPNG(900));
+      if (chain && idx() < SIGN_ROLES.length - 1){
+        if (role === 'user' && skipped && pads.user.empty){ toast('도시가스 사용자 서명은 꼭 받아야 합니다'); return; }
+        const prev = SIGN_ROLES[idx()][1];
+        setRole(SIGN_ROLES[idx() + 1][0]); if (skipped) toast(`${prev} 서명은 건너뛰었습니다`);
+      } else { close(); toast('서명을 넣었습니다'); }
+    }
+  });
+}
 function setMode(m){
   curMode = m;
   if (history.replaceState) history.replaceState(null, '', m === 'sign' ? '#sign' : '#photo');
@@ -456,6 +534,8 @@ function setMode(m){
 document.querySelector('.mtabs').addEventListener('click', e => { const b = e.target.closest('[data-mode]'); if (b) setMode(b.dataset.mode); });
 $('#signForm').addEventListener('click', e => {
   const c = e.target.closest('[data-clear]'); if (c){ pads[c.dataset.clear].clear(); return; }
+  const bg = e.target.closest('[data-big]'); if (bg){ openBigPad(bg.dataset.big, false); return; }
+  if (e.target.closest('[data-bigall]')){ openBigPad('user', true); return; }
   const b = e.target.closest('.seg2 button'); if (b){ const g = b.parentElement; g.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); flags[g.dataset.flag] = b.textContent; }
 });
 function loadImg(src){ return new Promise((ok, no) => { const i = new Image(); i.onload = () => ok(i); i.onerror = no; i.src = src; }); }

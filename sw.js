@@ -1,6 +1,6 @@
 // 공급전 안전점검 앱 — 화면 저장(오프라인 실행) 서비스워커
 // 개인정보·서버 데이터(Firebase 통신)는 저장하지 않고, 앱 화면과 공개 라이브러리만 저장합니다.
-const VER = 'pssr-v2';
+const VER = 'pssr-v3';
 const SHELL = ['./', './index.html', './field.html', './firebase-config.js', './companies.lock.js',
   './manifest.webmanifest', './icon-192.png', './icon-512.png', './icon-maskable-512.png', './apple-touch-icon.png', './favicon.png'];
 self.addEventListener('install', e => {
