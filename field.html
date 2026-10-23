@@ -477,6 +477,7 @@ window.addEventListener('beforeunload', e => { if (review.length || signData || 
     if (!u) return show('vLogin');
     if (!(await FieldStore.checkMember())){ show('vLogin'); $('#inErr').textContent = '등록되지 않은 사용자입니다. 관리자에게 사용자 등록을 요청하세요.'; FieldStore.signOut(); return; }
     show('vMain'); refresh();
+    if (location.hash === '#sign') setMode('sign');
   });
 })();
 </script>
