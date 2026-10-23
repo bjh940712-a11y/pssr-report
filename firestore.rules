@@ -1,0 +1,60 @@
+rules_version = '2';
+// 공급전 안전점검 · 현장 사진함
+// - 저장 대상: 기밀시험 결과지 사진만 (주소·이름·계약번호 등 식별정보 필드는 저장 불가)
+// - 접근: Authentication 로그인 + members/{uid} 문서가 있는 직원만
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null; }
+    function isMember() {
+      return signedIn() && exists(/databases/$(database)/documents/members/$(request.auth.uid));
+    }
+    function okTimes(d) {
+      return d.createdAt == request.time
+        && d.expireAt is timestamp
+        && d.expireAt > request.time
+        && d.expireAt < request.time + duration.value(8, 'd');
+    }
+    // 미리보기(작은 사진)·촬영번호·시각만 허용
+    function validMeta(d) {
+      return d.keys().hasOnly(['thumb', 'w', 'h', 'label', 'by', 'createdAt', 'expireAt'])
+        && d.keys().hasAll(['thumb', 'w', 'h', 'label', 'by', 'createdAt', 'expireAt'])
+        && d.thumb is string && d.thumb.size() < 60000
+        && d.w is number && d.h is number
+        && d.label is string && d.label.size() <= 20
+        && d.by == request.auth.uid
+        && okTimes(d);
+    }
+    // 원본 사진(JPEG base64)만 허용
+    function validData(d) {
+      return d.keys().hasOnly(['data', 'by', 'createdAt', 'expireAt'])
+        && d.keys().hasAll(['data', 'by', 'createdAt', 'expireAt'])
+        && d.data is string && d.data.size() < 1000000
+        && d.by == request.auth.uid
+        && okTimes(d);
+    }
+
+    // 직원 명단: 본인 문서 존재 여부만 확인 가능, 앱에서는 수정 불가 (콘솔에서 관리자만 추가)
+    match /members/{uid} {
+      allow get: if signedIn() && request.auth.uid == uid;
+      allow list, create, update, delete: if false;
+    }
+
+    match /fieldPhotos/{id} {
+      allow read, delete: if isMember();
+      allow create: if isMember() && validMeta(request.resource.data);
+      allow update: if false;
+    }
+
+    match /fieldPhotoData/{id} {
+      allow read, delete: if isMember();
+      allow create: if isMember() && validData(request.resource.data);
+      allow update: if false;
+    }
+
+    // 그 밖의 모든 경로는 차단
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
