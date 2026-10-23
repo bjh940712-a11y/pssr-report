@@ -33,6 +33,22 @@ main{padding:16px;max-width:560px;margin:0 auto}
 .rv-a button{border:1px solid var(--line);background:#fff;border-radius:10px;padding:12px 4px;font-size:14px;font-weight:600}
 .rv-a button.pri{grid-column:1/-1;background:var(--teal);border-color:var(--teal);color:#fff;font-size:17px;padding:14px}
 .rv-a button:disabled{opacity:.4}
+.mtabs{display:grid;grid-template-columns:1fr 1fr;background:#e4e9f0;border-radius:12px;padding:4px;margin-bottom:14px}
+.mtabs button{border:0;background:none;border-radius:9px;padding:11px 4px;font-weight:700;color:var(--ink-2);font-size:15px}
+.mtabs button.on{background:#fff;color:var(--navy);box-shadow:0 1px 4px rgba(0,0,0,.12)}
+.sgq{display:flex;flex-direction:column;gap:12px;margin-bottom:12px}
+.sgq>div{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:14px}
+.seg2{display:inline-flex;border:1px solid #c9d2dd;border-radius:8px;overflow:hidden}
+.seg2 button{border:0;background:#fff;padding:8px 14px;font-weight:600;font-size:14px;color:var(--ink-2)}
+.seg2 button.on{background:var(--navy);color:#fff}
+.pad{background:#fff;border:1px solid var(--line);border-radius:12px;margin-bottom:12px;overflow:hidden}
+.pad-h{display:flex;align-items:center;gap:8px;padding:9px 12px;border-bottom:1px dashed var(--line);font-size:14px}
+.pad-h b{flex:1}
+.pad-h .req{font-size:11px;color:#fff;background:var(--bad);border-radius:8px;padding:1px 7px}
+.pad-h .opt{font-size:11px;color:var(--ink-3)}
+.pad-h button{border:1px solid var(--line);background:#fff;border-radius:7px;padding:4px 10px;font-size:13px}
+.pad canvas{display:block;width:100%;height:150px;background:repeating-linear-gradient(transparent 0 118px,#d6dde6 118px 119px,transparent 119px 150px)}
+.pad.done .pad-h b::after{content:' ✓';color:var(--ok)}
 h3{font-size:15px;margin:22px 2px 10px;color:var(--navy);display:flex;align-items:center;gap:8px}
 h3 span{font-weight:400;color:var(--ink-3);font-size:13px}
 .list{display:flex;flex-direction:column;gap:10px}
@@ -77,6 +93,8 @@ input[type=email],input[type=password]{width:100%;border:1px solid #c9d2dd;borde
   </div>
   <!-- 촬영 -->
   <div id="vMain" class="hidden">
+    <div class="mtabs"><button data-mode="photo" class="on">📷 결과지 촬영</button><button data-mode="sign">✍️ 서명 받기</button></div>
+    <div id="mPhoto">
     <div class="note">📌 <b>기밀시험 결과지만</b> 촬영하세요.<br>이름·주소 등은 입력하지 않습니다. 사진은 사무실 PC에서 해당 건에 연결되며, 서버에서는 <b id="keepDays">3</b>일 뒤 자동 삭제됩니다.</div>
     <div id="review" class="hidden"></div>
     <div id="shootBox">
@@ -84,7 +102,21 @@ input[type=email],input[type=password]{width:100%;border:1px solid #c9d2dd;borde
       <input type="file" id="cam" accept="image/*" capture="environment"></label>
     <label class="alt">🖼 앨범에서 선택<input type="file" id="pick" accept="image/*" multiple></label>
     </div>
-    <h3>오늘 올린 사진 <span id="cnt"></span></h3>
+    </div>
+    <div id="mSign" class="hidden">
+      <div class="note">✍️ <b>서명만</b> 받습니다. 이름·주소는 입력하지 않으며, 사무실 PC에서 해당 건의 「안전교육 및 개인정보 동의서」에 들어갑니다. 서버에서는 3일 뒤 자동 삭제됩니다.</div>
+      <div id="signForm">
+        <div class="card sgq">
+          <div><b>개인정보 수집·이용</b><div class="seg2" data-flag="consent"><button class="on">동의</button><button>미동의</button></div></div>
+          <div><b>LPG 해지·안전조치</b><div class="seg2" data-flag="lpg"><button>확인</button><button class="on">해당없음</button></div></div>
+        </div>
+        <div id="pads"></div>
+        <button class="btn" id="signDone">서명 완료 → 확인</button>
+        <div class="err" id="signErr"></div>
+      </div>
+      <div id="signReview" class="hidden"></div>
+    </div>
+    <h3>오늘 올린 사진·서명 <span id="cnt"></span></h3>
     <div class="list" id="list"></div>
   </div>
 </main>
@@ -153,12 +185,12 @@ const FieldStore = (() => {
     signIn: (e, p) => auth.signInWithEmailAndPassword(e, p),
     signOut: () => auth.signOut(),
     async checkMember(){ const u = auth.currentUser; if (!u) return false; try{ const d = await db.collection('members').doc(u.uid).get(); return d.exists; }catch(e){ return false; } },
-    async upload({thumb, w, h, label, data}){
+    async upload({thumb, w, h, label, data, kind}){
       const u = auth.currentUser; if (!u) throw new Error('로그인이 필요합니다.');
       const ref = db.collection(META).doc();
       const now = fb.firestore.FieldValue.serverTimestamp(), exp = ts(expireDate());
       const b = db.batch();
-      b.set(ref, {thumb, w, h, label, by: u.uid, createdAt: now, expireAt: exp});
+      b.set(ref, {thumb, w, h, label, kind: kind === 'sign' ? 'sign' : 'photo', by: u.uid, createdAt: now, expireAt: exp});
       b.set(db.collection(DATA).doc(ref.id), {data, by: u.uid, createdAt: now, expireAt: exp});
       await b.commit();
       return ref.id;
@@ -212,6 +244,48 @@ async function photoToJpeg(file, maxSide, maxB64, q0){
 }
 function b64ToBlob(b64, type){ const bin = atob(b64), u = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i); return new Blob([u], {type}); }
 
+/* 서명 패드 (손가락·펜·마우스) */
+class SignPad{
+  constructor(canvas){
+    this.c = canvas; this.g = canvas.getContext('2d'); this.empty = true; this.pts = null;
+    canvas.style.touchAction = 'none';
+    const pos = e => { const r = this.c.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
+    canvas.addEventListener('pointerdown', e => { e.preventDefault(); canvas.setPointerCapture(e.pointerId); this.pts = [pos(e)]; this.dot(this.pts[0]); this.empty = false; });
+    canvas.addEventListener('pointermove', e => { if (!this.pts) return; e.preventDefault(); const p = pos(e), q = this.pts[this.pts.length - 1];
+      if (Math.hypot(p[0]-q[0], p[1]-q[1]) < 1) return; this.pts.push(p); this.seg(); });
+    const end = () => { this.pts = null; canvas.dispatchEvent(new Event('signchange')); };
+    canvas.addEventListener('pointerup', end); canvas.addEventListener('pointercancel', end);
+    this.resize();
+  }
+  resize(){
+    const r = this.c.getBoundingClientRect(), d = window.devicePixelRatio || 1;
+    this.c.width = Math.max(1, Math.round(r.width * d)); this.c.height = Math.max(1, Math.round(r.height * d));
+    this.g.setTransform(d, 0, 0, d, 0, 0); this.g.lineCap = 'round'; this.g.lineJoin = 'round'; this.g.strokeStyle = '#111'; this.g.fillStyle = '#111'; this.g.lineWidth = 2.8;
+    this.clear();
+  }
+  clear(){ this.g.save(); this.g.setTransform(1,0,0,1,0,0); this.g.clearRect(0, 0, this.c.width, this.c.height); this.g.restore(); this.empty = true; this.c.dispatchEvent(new Event('signchange')); }
+  dot(p){ this.g.beginPath(); this.g.arc(p[0], p[1], 1.4, 0, Math.PI * 2); this.g.fill(); }
+  seg(){
+    const n = this.pts.length, g = this.g;
+    if (n < 3){ g.beginPath(); g.moveTo(...this.pts[0]); g.lineTo(...this.pts[n-1]); g.stroke(); return; }
+    const [a, b, c] = [this.pts[n-3], this.pts[n-2], this.pts[n-1]];
+    g.beginPath(); g.moveTo((a[0]+b[0])/2, (a[1]+b[1])/2); g.quadraticCurveTo(b[0], b[1], (b[0]+c[0])/2, (b[1]+c[1])/2); g.stroke();
+  }
+  toPNG(maxW = 600){
+    if (this.empty) return '';
+    const W = this.c.width, H = this.c.height, d = this.g.getImageData(0, 0, W, H).data;
+    let x0 = W, y0 = H, x1 = -1, y1 = -1;
+    for (let y = 0; y < H; y += 2) for (let x = 0; x < W; x += 2) if (d[(y * W + x) * 4 + 3] > 20){ if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+    if (x1 < 0) return '';
+    const pad = 8; x0 = Math.max(0, x0 - pad); y0 = Math.max(0, y0 - pad); x1 = Math.min(W - 1, x1 + pad); y1 = Math.min(H - 1, y1 + pad);
+    const w = x1 - x0 + 1, h = y1 - y0 + 1, k = Math.min(1, maxW / w);
+    const o = document.createElement('canvas'); o.width = Math.round(w * k); o.height = Math.round(h * k);
+    o.getContext('2d').drawImage(this.c, x0, y0, w, h, 0, 0, o.width, o.height);
+    return o.toDataURL('image/png');
+  }
+}
+const SIGN_ROLES = [['user','도시가스 사용자'],['contractor','도시가스 시공자'],['lpg','LPG공급(판매)자'],['supplier','도시가스 공급자(점검자)']];
+
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 function toast(m){ const t = $('#toast'); t.textContent = m; t.classList.add('on'); clearTimeout(toast.h); toast.h = setTimeout(() => t.classList.remove('on'), 2200); }
@@ -223,13 +297,14 @@ const hm = d => d ? `${p2(d.getHours())}:${p2(d.getMinutes())}` : '';
 let server = [];          // 서버에 있는 내 오늘 사진
 const pending = [];       // 업로드 중/실패
 const review = [];        // 촬영 후 업로드 전 확인 대기
-function nextLabel(){
-  const now = new Date(), k = 'pssr.field.seq.' + dayKey(now);
+function nextLabel(kind = 'photo'){
+  const now = new Date(), k = `pssr.field.seq.${kind}.` + dayKey(now), isSign = kind === 'sign';
+  const same = p => isSign === / 서명 /.test(String(p.label));
   let n = 0; try{ n = +localStorage.getItem(k) || 0; }catch(e){}
-  const fromServer = server.reduce((m, p) => { const x = +(String(p.label).split('#')[1] || 0); return Math.max(m, x); }, 0);
-  n = Math.max(n, fromServer, pending.length ? Math.max(...pending.map(p => +p.label.split('#')[1])) : 0) + 1;
+  const num = p => +(String(p.label).split('#')[1] || 0);
+  n = Math.max(n, ...server.filter(same).map(num), ...pending.filter(same).map(num), 0) + 1;
   try{ localStorage.setItem(k, n); }catch(e){}
-  return `${p2(now.getMonth()+1)}/${p2(now.getDate())} #${n}`;
+  return `${p2(now.getMonth()+1)}/${p2(now.getDate())}${isSign ? ' 서명' : ''} #${n}`;
 }
 function renderReview(){
   const box = $('#review');
@@ -274,7 +349,7 @@ async function refresh(){
 async function doUpload(p){
   p.err = ''; render();
   try{
-    await FieldStore.upload({thumb:p.thumb, w:p.w, h:p.h, label:p.label, data:p.data});
+    await FieldStore.upload({thumb:p.thumb, w:p.w, h:p.h, label:p.label, data:p.data, kind:p.kind});
     pending.splice(pending.indexOf(p), 1);
     toast(`${p.label} 전송 완료`);
     await refresh();
@@ -332,7 +407,63 @@ $('#inBtn').onclick = async () => {
 };
 $('#pw').addEventListener('keydown', e => { if (e.key === 'Enter') $('#inBtn').click(); });
 $('#outBtn').onclick = () => FieldStore.signOut();
-window.addEventListener('beforeunload', e => { if (review.length || pending.some(p => !p.err)) { e.preventDefault(); e.returnValue = ''; } });
+/* ===== 서명 받기 ===== */
+const pads = {};
+let flags = {consent:'동의', lpg:'해당없음'}, signData = null;
+function buildPads(){
+  if (Object.keys(pads).length) return;
+  $('#pads').innerHTML = SIGN_ROLES.map(([r, l]) => `<div class="pad" data-pad="${r}"><div class="pad-h"><b>${l}</b>${r==='user'?'<span class="req">필수</span>':'<span class="opt">해당 시</span>'}<button data-clear="${r}">지우기</button></div><canvas data-role="${r}"></canvas></div>`).join('');
+  SIGN_ROLES.forEach(([r]) => { const c = document.querySelector(`canvas[data-role="${r}"]`); pads[r] = new SignPad(c);
+    c.addEventListener('signchange', () => c.closest('.pad').classList.toggle('done', !pads[r].empty)); });
+}
+function setMode(m){
+  document.querySelectorAll('.mtabs button').forEach(b => b.classList.toggle('on', b.dataset.mode === m));
+  $('#mPhoto').classList.toggle('hidden', m !== 'photo'); $('#mSign').classList.toggle('hidden', m !== 'sign');
+  if (m === 'sign') setTimeout(buildPads, 30);
+}
+document.querySelector('.mtabs').addEventListener('click', e => { const b = e.target.closest('[data-mode]'); if (b) setMode(b.dataset.mode); });
+$('#signForm').addEventListener('click', e => {
+  const c = e.target.closest('[data-clear]'); if (c){ pads[c.dataset.clear].clear(); return; }
+  const b = e.target.closest('.seg2 button'); if (b){ const g = b.parentElement; g.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); flags[g.dataset.flag] = b.textContent; }
+});
+function loadImg(src){ return new Promise((ok, no) => { const i = new Image(); i.onload = () => ok(i); i.onerror = no; i.src = src; }); }
+async function composite(sigs, W){
+  const cell = W / 2, H = Math.round(cell * 0.62) * 2, c = document.createElement('canvas'); c.width = W; c.height = H;
+  const g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, W, H);
+  g.strokeStyle = '#d6dde6'; g.lineWidth = 1; g.strokeRect(0.5, 0.5, W - 1, H - 1); g.beginPath(); g.moveTo(W/2, 0); g.lineTo(W/2, H); g.moveTo(0, H/2); g.lineTo(W, H/2); g.stroke();
+  const ch = H / 2;
+  for (let i = 0; i < SIGN_ROLES.length; i++){
+    const [r, l] = SIGN_ROLES[i], x = (i % 2) * cell, y = Math.floor(i / 2) * ch;
+    g.fillStyle = '#7b8798'; g.font = `${Math.round(W/36)}px sans-serif`; g.fillText(l, x + 8, y + W/30);
+    if (sigs[r]){ const im = await loadImg(sigs[r]); const k = Math.min((cell - 20) / im.width, (ch - W/24 - 14) / im.height); g.drawImage(im, x + (cell - im.width*k)/2, y + W/24 + 6 + (ch - W/24 - 14 - im.height*k)/2, im.width*k, im.height*k); }
+  }
+  return c;
+}
+$('#signDone').onclick = async () => {
+  $('#signErr').textContent = '';
+  if (pads.user.empty){ $('#signErr').textContent = '도시가스 사용자 서명은 꼭 받아야 합니다.'; return; }
+  const sigs = {}; SIGN_ROLES.forEach(([r]) => { const v = pads[r].toPNG(600); if (v) sigs[r] = v; });
+  const big = await composite(sigs, 720), small = await composite(sigs, 260);
+  signData = {sigs, flags: {...flags}, thumb: small.toDataURL('image/jpeg', 0.75).split(',')[1], w: big.width, h: big.height};
+  $('#signForm').classList.add('hidden'); $('#signReview').classList.remove('hidden');
+  $('#signReview').innerHTML = `<div class="rv"><img class="rv-img" src="${big.toDataURL('image/png')}" alt="">
+    <div class="rv-q">개인정보 <b>${esc(flags.consent)}</b> · LPG 안전조치 <b>${esc(flags.lpg)}</b><br>서명이 잘 되었나요?</div>
+    <div class="rv-a"><button data-sr="edit">✎ 수정</button><button data-sr="reset">✕ 처음부터</button><span></span><button data-sr="up" class="pri">⬆ 서명 업로드</button></div></div>`;
+  window.scrollTo({top: 0, behavior: 'smooth'});
+};
+function resetSign(){ SIGN_ROLES.forEach(([r]) => pads[r] && pads[r].clear()); signData = null; $('#signReview').classList.add('hidden'); $('#signForm').classList.remove('hidden'); }
+$('#signReview').addEventListener('click', e => {
+  const b = e.target.closest('[data-sr]'); if (!b) return;
+  if (b.dataset.sr === 'edit'){ $('#signReview').classList.add('hidden'); $('#signForm').classList.remove('hidden'); return; }
+  if (b.dataset.sr === 'reset'){ if (confirm('서명을 모두 지우고 처음부터 받을까요?')) resetSign(); return; }
+  if (b.dataset.sr === 'up' && signData){
+    const p = {tmp: Math.random().toString(36).slice(2), kind:'sign', label: nextLabel('sign'), thumb: signData.thumb, w: signData.w, h: signData.h,
+               data: JSON.stringify({v:1, sigs: signData.sigs, flags: signData.flags}), err:''};
+    pending.unshift(p); resetSign(); doUpload(p);
+    document.querySelector('#list').scrollIntoView({behavior:'smooth'});
+  }
+});
+window.addEventListener('beforeunload', e => { if (review.length || signData || pending.some(p => !p.err) || Object.values(pads).some(p => !p.empty)) { e.preventDefault(); e.returnValue = ''; } });
 
 (async () => {
   $('#keepDays').textContent = FieldStore.KEEP_DAYS;
