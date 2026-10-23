@@ -236,7 +236,7 @@ body.inbox-on #p-rep{padding-right:420px}
 <body>
 <div id="app">
   <header class="top">
-    <div class="brand"><span class="dot">✓</span>공급전 안전점검 결과보고서</div>
+    <div class="brand" id="brandHome" style="cursor:pointer" title="처음 화면으로"><span class="dot">✓</span>공급전 안전점검 결과보고서</div>
     <nav class="tabs">
       <button class="tab on" data-tab="rep">보고서 작성</button>
       <button class="tab" data-tab="co">시공업체 관리</button>
@@ -267,6 +267,7 @@ body.inbox-on #p-rep{padding-right:420px}
       <div class="bar">
         <div class="info" id="fileInfo"></div>
         <div class="sp"></div>
+        <button class="btn" id="homeBtn" title="ERP 파일을 닫고 처음 화면으로 돌아갑니다 (수정 내용·첨부파일은 유지)">🏠 처음 화면</button>
         <button class="btn" id="reloadBtn">다른 파일 불러오기</button>
         <button class="btn teal" id="xlsxBtn">⬇ 엑셀</button>
         <button class="btn teal" id="pdfBtn">⬇ PDF 저장</button>
@@ -953,6 +954,17 @@ const dz = $('#dropZone');
 dz.addEventListener('drop', e => { const f = e.dataTransfer.files[0]; if (f) loadFile(f); });
 document.addEventListener('dragover', e => e.preventDefault());
 document.addEventListener('drop', e => { e.preventDefault(); const f = e.dataTransfer.files[0]; if (!$('#p-rep').classList.contains('hidden') && f && /\.(xls|xlsx|xlsm|csv)$/i.test(f.name) && !dz.contains(e.target)) loadFile(f); });
+function goHome(){
+  if (data && !confirm('불러온 ERP 파일을 닫고 처음 화면으로 돌아갈까요?\n\n각 건에서 수정한 내용과 첨부파일은 지워지지 않으며, 같은 ERP 파일을 다시 불러오면 그대로 이어집니다.')) return;
+  data = null; cur = null; sel = new Set();
+  try{ localStorage.removeItem(KEY.data); }catch(e){}
+  closeInbox();
+  document.querySelectorAll('.tab').forEach(x => x.classList.toggle('on', x.dataset.tab === 'rep'));
+  ['rep','co','set'].forEach(p => $('#p-'+p).classList.toggle('hidden', p !== 'rep'));
+  showWork(); window.scrollTo(0, 0);
+}
+$('#homeBtn').onclick = goHome;
+$('#brandHome').onclick = () => { if (data || $('#p-rep').classList.contains('hidden')) goHome(); };
 $('#pickBtn').onclick = () => $('#fileIn').click();
 $('#reloadBtn').onclick = () => $('#fileIn').click();
 $('#fileIn').onchange = e => { const f = e.target.files[0]; if (f) loadFile(f); e.target.value=''; };
