@@ -26,6 +26,13 @@ main{padding:16px;max-width:560px;margin:0 auto}
 .shoot .ic{font-size:40px;line-height:1}
 .shoot input,.alt input{position:absolute;inset:0;opacity:0;width:100%;height:100%}
 .alt{position:relative;display:block;text-align:center;margin-top:10px;padding:12px;border-radius:10px;border:1px solid var(--line);background:#fff;color:var(--ink-2);font-size:15px;font-weight:600}
+.rv{background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px;margin-bottom:12px}
+.rv-img{width:100%;max-height:60vh;object-fit:contain;background:#eef1f4;border-radius:8px;display:block}
+.rv-q{font-size:14px;color:var(--ink-2);margin:10px 2px 8px;text-align:center}
+.rv-a{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.rv-a button{border:1px solid var(--line);background:#fff;border-radius:10px;padding:12px 4px;font-size:14px;font-weight:600}
+.rv-a button.pri{grid-column:1/-1;background:var(--teal);border-color:var(--teal);color:#fff;font-size:17px;padding:14px}
+.rv-a button:disabled{opacity:.4}
 h3{font-size:15px;margin:22px 2px 10px;color:var(--navy);display:flex;align-items:center;gap:8px}
 h3 span{font-weight:400;color:var(--ink-3);font-size:13px}
 .list{display:flex;flex-direction:column;gap:10px}
@@ -71,9 +78,12 @@ input[type=email],input[type=password]{width:100%;border:1px solid #c9d2dd;borde
   <!-- 촬영 -->
   <div id="vMain" class="hidden">
     <div class="note">📌 <b>기밀시험 결과지만</b> 촬영하세요.<br>이름·주소 등은 입력하지 않습니다. 사진은 사무실 PC에서 해당 건에 연결되며, 서버에서는 <b id="keepDays">3</b>일 뒤 자동 삭제됩니다.</div>
+    <div id="review" class="hidden"></div>
+    <div id="shootBox">
     <label class="shoot"><span class="ic">📷</span>결과지 촬영
       <input type="file" id="cam" accept="image/*" capture="environment"></label>
     <label class="alt">🖼 앨범에서 선택<input type="file" id="pick" accept="image/*" multiple></label>
+    </div>
     <h3>오늘 올린 사진 <span id="cnt"></span></h3>
     <div class="list" id="list"></div>
   </div>
@@ -212,6 +222,7 @@ const hm = d => d ? `${p2(d.getHours())}:${p2(d.getMinutes())}` : '';
 
 let server = [];          // 서버에 있는 내 오늘 사진
 const pending = [];       // 업로드 중/실패
+const review = [];        // 촬영 후 업로드 전 확인 대기
 function nextLabel(){
   const now = new Date(), k = 'pssr.field.seq.' + dayKey(now);
   let n = 0; try{ n = +localStorage.getItem(k) || 0; }catch(e){}
@@ -220,7 +231,25 @@ function nextLabel(){
   try{ localStorage.setItem(k, n); }catch(e){}
   return `${p2(now.getMonth()+1)}/${p2(now.getDate())} #${n}`;
 }
+function renderReview(){
+  const box = $('#review');
+  box.classList.toggle('hidden', !review.length);
+  $('#shootBox').classList.toggle('hidden', review.length > 0);
+  box.innerHTML = review.length ? `<h3 style="margin-top:0">업로드 전 확인 <span>${review.length}장</span></h3>` + review.map(r => `
+    <div class="rv" data-tmp="${r.tmp}">
+      ${r.busy ? '<div class="rv-img" style="display:grid;place-items:center;height:240px"><span><span class="spin"></span>처리 중…</span></div>'
+               : `<img class="rv-img" src="data:image/jpeg;base64,${r.data}" alt="">`}
+      <div class="rv-q">결과지 글자가 잘 읽히나요?</div>
+      <div class="rv-a">
+        <button data-rv="rot" ${r.busy?'disabled':''}>↻ 회전</button>
+        <button data-rv="retake" ${r.busy?'disabled':''}>📷 다시 찍기</button>
+        <button data-rv="cancel">✕ 취소</button>
+        <button data-rv="up" class="pri" ${r.busy?'disabled':''}>⬆ 업로드</button>
+      </div>
+    </div>`).join('') + (review.length > 1 ? `<button class="btn" id="upAll" style="margin-top:4px">⬆ ${review.length}장 모두 업로드</button>` : '') : '';
+}
 function render(){
+  renderReview();
   const items = [
     ...pending.map(p => ({k:'p', ...p})),
     ...server.slice().sort((a,b) => (FieldStore.toDate(b.createdAt)||new Date()) - (FieldStore.toDate(a.createdAt)||new Date())).map(p => ({k:'s', ...p})),
@@ -251,18 +280,42 @@ async function doUpload(p){
     await refresh();
   }catch(e){ p.err = FieldStore.errMsg(e); render(); }
 }
+async function makeVersions(src){
+  const [full, th] = await Promise.all([photoToJpeg(src, 1800, 950000, 0.82), photoToJpeg(src, 240, 55000, 0.7)]);
+  return {data: full.b64, w: full.w, h: full.h, thumb: th.b64};
+}
+async function rotateB64(b64){
+  const img = await createImageBitmap(b64ToBlob(b64, 'image/jpeg'));
+  const c = document.createElement('canvas'); c.width = img.height; c.height = img.width;
+  const g = c.getContext('2d'); g.translate(c.width, 0); g.rotate(Math.PI / 2); g.drawImage(img, 0, 0);
+  img.close && img.close();
+  return new Promise(ok => c.toBlob(ok, 'image/jpeg', 0.92));
+}
 async function addFiles(files){
   for (const f of files){
-    const label = nextLabel();
-    const p = {tmp: Math.random().toString(36).slice(2), label, thumb:'', err:''};
-    pending.unshift(p); render();
-    try{
-      const [full, th] = await Promise.all([photoToJpeg(f, 1800, 950000, 0.82), photoToJpeg(f, 240, 55000, 0.7)]);
-      Object.assign(p, {data: full.b64, w: full.w, h: full.h, thumb: th.b64});
-    }catch(e){ p.err = '사진을 처리할 수 없습니다'; render(); continue; }
-    doUpload(p);
+    const r = {tmp: Math.random().toString(36).slice(2), busy: true};
+    review.push(r); render();
+    try{ Object.assign(r, await makeVersions(f)); r.busy = false; }
+    catch(e){ review.splice(review.indexOf(r), 1); toast('사진을 처리할 수 없습니다'); }
+    render();
   }
+  window.scrollTo({top: 0, behavior: 'smooth'});
 }
+function uploadReviewed(r){
+  review.splice(review.indexOf(r), 1);
+  const p = {tmp: r.tmp, label: nextLabel(), thumb: r.thumb, data: r.data, w: r.w, h: r.h, err: ''};
+  pending.unshift(p); doUpload(p);
+}
+$('#review').addEventListener('click', async e => {
+  if (e.target.id === 'upAll'){ review.slice().filter(r => !r.busy).forEach(uploadReviewed); return; }
+  const b = e.target.closest('[data-rv]'); if (!b) return;
+  const r = review.find(x => x.tmp === b.closest('[data-tmp]').dataset.tmp); if (!r) return;
+  const act = b.dataset.rv;
+  if (act === 'up') uploadReviewed(r);
+  else if (act === 'cancel'){ review.splice(review.indexOf(r), 1); render(); toast('취소했습니다 (서버에 올라가지 않음)'); }
+  else if (act === 'retake'){ review.splice(review.indexOf(r), 1); render(); $('#cam').click(); }
+  else if (act === 'rot'){ r.busy = true; render(); try{ Object.assign(r, await makeVersions(await rotateB64(r.data))); }catch(err){ toast('회전하지 못했습니다'); } r.busy = false; render(); }
+});
 $('#cam').onchange = e => { const fs = [...e.target.files]; e.target.value = ''; if (fs.length) addFiles(fs); };
 $('#pick').onchange = e => { const fs = [...e.target.files]; e.target.value = ''; if (fs.length) addFiles(fs); };
 $('#list').addEventListener('click', async e => {
@@ -279,7 +332,7 @@ $('#inBtn').onclick = async () => {
 };
 $('#pw').addEventListener('keydown', e => { if (e.key === 'Enter') $('#inBtn').click(); });
 $('#outBtn').onclick = () => FieldStore.signOut();
-window.addEventListener('beforeunload', e => { if (pending.some(p => !p.err)) { e.preventDefault(); e.returnValue = ''; } });
+window.addEventListener('beforeunload', e => { if (review.length || pending.some(p => !p.err)) { e.preventDefault(); e.returnValue = ''; } });
 
 (async () => {
   $('#keepDays').textContent = FieldStore.KEEP_DAYS;
