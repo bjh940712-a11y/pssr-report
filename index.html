@@ -1432,9 +1432,8 @@ async function saveMerged(recs){
       try{
         const bytes = await buildMergedPdf(recs[i], host);
         const blob = new Blob([bytes], {type:'application/pdf'});
-        if (dir === 'download'){ download(blob, names[i]); await releaseFieldPhotos(recs[i]); }
+        if (dir === 'download') download(blob, names[i]);
         else { const fh = await dir.getFileHandle(names[i], {create:true}); const w = await fh.createWritable(); await w.write(blob); await w.close(); }
-        await releaseFieldPhotos(recs[i]);
       }catch(e){ console.error(e); fail.push(`${names[i]} — ${e.message}`); }
     }
     const okN = recs.length - fail.length;
@@ -1512,7 +1511,7 @@ function renderInbox(){
   const recName = cur ? view(rows().find(r => r.id === cur) || {src:{}}).name : '';
   b.innerHTML = `<a class="btn teal" href="field.html" target="_blank" style="width:100%;justify-content:center;margin-bottom:10px;text-decoration:none">📷 현장 촬영 화면 열기 (새 탭)</a>
     <label style="display:flex;gap:6px;align-items:center;font-size:13px;margin:0 0 10px;color:var(--ink-2)"><input type="checkbox" id="scanFix" ${store.get('pssr.scanfix', true)?'checked':''}> 첨부할 때 <b>문서 보정</b> (종이 배경 하얗게·글씨 진하게) 후 PDF로 변환</label>
-    <div class="dr-note">사진을 <b>왼쪽 편집 화면의 「추가 첨부파일」 칸으로 끌어다 놓거나</b> 「현재 건에 첨부」를 누르세요. 병합 PDF를 저장하면 서버에서 자동 삭제됩니다.</div>` +
+    <div class="dr-note">사진을 <b>왼쪽 편집 화면의 「추가 첨부파일」 칸으로 끌어다 놓거나</b> 「현재 건에 첨부」를 누르세요. 사진은 병합 여부와 관계없이 <b>업로드 3일 뒤 서버에서 자동 삭제</b>됩니다.</div>` +
     (inbox.length ? `<div class="ph-grid">${inbox.map(p => {
       const d = FieldStore.toDate(p.createdAt), exp = FieldStore.toDate(p.expireAt);
       const left = exp ? Math.max(0, Math.ceil((exp - Date.now()) / 864e5)) : '';
