@@ -513,7 +513,14 @@ const FieldStore = (() => {
     user: () => auth && auth.currentUser,
     signIn: (e, p) => auth.signInWithEmailAndPassword(e, p),
     signOut: () => auth.signOut(),
-    async checkMember(){ const u = auth.currentUser; if (!u) return false; try{ const d = await db.collection('members').doc(u.uid).get(); return d.exists; }catch(e){ return false; } },
+    role: '',   // 'admin'(마스터: 전체 보기) | 'user'(일반: 본인 것만)
+    isDemo(){ return this.role !== 'admin'; },   // 일반 계정 = 본인이 올린 것만
+    isAdmin(){ return this.role === 'admin'; },
+    async checkMember(){
+      const u = auth.currentUser; this.role = ''; if (!u) return false;
+      try{ const d = await db.collection('members').doc(u.uid).get(); if (!d.exists) return false;
+        this.role = d.data().role === 'admin' ? 'admin' : 'user'; return true; }catch(e){ return false; }
+    },
     async upload({thumb, w, h, label, data, kind}){
       const u = auth.currentUser; if (!u) throw new Error('로그인이 필요합니다.');
       const ref = db.collection(META).doc();
@@ -525,8 +532,10 @@ const FieldStore = (() => {
       return ref.id;
     },
     watchAll(cb, onErr){
-      return db.collection(META).orderBy('createdAt', 'desc').limit(200)
-        .onSnapshot(s => cb(s.docs.map(d => ({id: d.id, ...d.data()}))), onErr);
+      // 일반 계정은 자기가 올린 것만 (보안 규칙도 동일하게 제한), 마스터는 전체
+      const q = this.isDemo() ? db.collection(META).where('by', '==', auth.currentUser.uid) : db.collection(META).orderBy('createdAt', 'desc').limit(200);
+      const t = x => { const d = toDate(x.createdAt); return d ? +d : Date.now(); };
+      return q.onSnapshot(s => cb(s.docs.map(d => ({id: d.id, ...d.data()})).sort((a, b) => t(b) - t(a))), onErr);
     },
     async listMine(){
       const u = auth.currentUser; if (!u) return [];
@@ -544,6 +553,7 @@ const FieldStore = (() => {
       await b.commit();
     },
     async purgeExpired(){
+      if (!this.isAdmin()) return 0;   // 만료 정리는 마스터 계정·TTL이 담당
       const now = ts(new Date()); let n = 0;
       for (const col of [META, DATA]){
         const s = await db.collection(col).where('expireAt', '<', now).limit(200).get();
@@ -1686,7 +1696,7 @@ function renderInbox(){
     return;
   }
   const recName = cur ? view(rows().find(r => r.id === cur) || {src:{}}).name : '';
-  b.innerHTML = `<a class="btn teal" href="field.html?v=3" target="_blank" style="width:100%;justify-content:center;margin-bottom:10px;text-decoration:none">📷 현장 촬영 화면 열기 (새 탭)</a>
+  b.innerHTML = (FieldStore.isAdmin() ? `<div class="dr-note" style="margin-bottom:10px">👑 <b>마스터 계정</b> — 모든 직원이 올린 사진·서명이 보입니다.</div>` : `<div class="dr-note" style="margin-bottom:10px">👤 내 계정으로 올린 사진·서명만 보입니다.</div>`) + `<a class="btn teal" href="field.html?v=3" target="_blank" style="width:100%;justify-content:center;margin-bottom:10px;text-decoration:none">📷 현장 촬영 화면 열기 (새 탭)</a>
     <label style="display:flex;gap:6px;align-items:center;font-size:13px;margin:0 0 10px;color:var(--ink-2)"><input type="checkbox" id="scanFix" ${store.get('pssr.scanfix', true)?'checked':''}> 첨부할 때 <b>문서 보정</b> (종이 배경 하얗게·글씨 진하게) 후 PDF로 변환</label>
     <div class="dr-note">사진을 <b>왼쪽 편집 화면의 「추가 첨부파일」 칸으로 끌어다 놓거나</b> 「현재 건에 첨부」를 누르세요. 사진은 병합 여부와 관계없이 <b>업로드 3일 뒤 서버에서 자동 삭제</b>됩니다.</div>` +
     (inbox.length ? `<div class="ph-grid">${inbox.map(p => {
