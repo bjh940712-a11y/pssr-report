@@ -251,7 +251,13 @@ const FieldStore = (() => {
       await b.commit();
     },
     async purgeExpired(){
-      if (!this.isAdmin()) return 0;   // 만료 정리는 마스터 계정·TTL이 담당
+      if (!this.isAdmin()){
+        // 일반 계정: 내가 올린 것 중 만료된 것만 정리 (보안 규칙상 본인 것만 삭제 가능)
+        const u = auth.currentUser; if (!u) return 0; let n = 0;
+        const s = await db.collection(META).where('by', '==', u.uid).get();
+        for (const d of s.docs){ const e = toDate(d.data().expireAt); if (e && e < new Date()){ try{ await this.remove(d.id); n++; }catch(err){} } }
+        return n;
+      }
       const now = ts(new Date()); let n = 0;
       for (const col of [META, DATA]){
         const s = await db.collection(col).where('expireAt', '<', now).limit(200).get();
@@ -599,7 +605,7 @@ window.addEventListener('beforeunload', e => { if (review.length || signData || 
     answered = true;
     if (!u) return show('vLogin');
     if (!(await FieldStore.checkMember())){ show('vLogin'); $('#inErr').textContent = '등록되지 않은 사용자입니다. 관리자에게 사용자 등록을 요청하세요.'; FieldStore.signOut(); return; }
-    show('vMain'); refresh();
+    show('vMain'); FieldStore.purgeExpired().then(n => { if (n) refresh(); }).catch(() => {}); refresh();
     const tb = $('#demoTag'); if (tb) tb.classList.toggle('hidden', !FieldStore.isAdmin());
     setMode(location.hash === '#sign' ? 'sign' : (location.hash === '#photo' ? 'photo' : curMode));
   });
