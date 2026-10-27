@@ -337,7 +337,8 @@ body.inbox-on #p-rep{padding-right:420px}
 @media print{
   @page{size:A4 portrait;margin:0}
   body{background:#fff}
-  #app,.toast{display:none!important}
+  body>*:not(#printArea){display:none!important}   /* 사진함·팝업 등 화면 요소는 인쇄하지 않음 */
+  body.inbox-on #p-rep{padding-right:0}
   #printArea{display:block}
   .pg{page-break-after:always;break-after:page}
   .pg:last-child{page-break-after:auto;break-after:auto}
