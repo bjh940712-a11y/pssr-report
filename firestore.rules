@@ -1,6 +1,9 @@
 rules_version = '2';
 // 공급전 안전점검 · 현장 사진함
-// - 저장 대상: 기밀시험 결과지 사진만 (주소·이름·계약번호 등 식별정보 필드는 저장 불가)
+// - 저장 대상: 기밀시험 결과지 사진, 기타 서류 스캔(보일러 확인서·필증 등), 서명 그림 — 업로드 3일 뒤 삭제
+// - 주소·이름·계약번호 등 글자 식별정보 필드는 저장 불가
+// - 현장 목록(fieldCases): 앱이 시설명·주소·구분·검사일을 AES-GCM으로 암호화한 묶음 (암호문·건수 필드만 허용), 3일 보관
+// - 건 번호(cid): 계약번호를 열쇠로 HMAC 한 16자리 값 (서버에서 계약 식별 불가)
 // - 접근: Authentication 로그인 + members/{uid} 문서가 있는 직원만
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -9,27 +12,48 @@ service cloud.firestore {
     function isMember() {
       return signedIn() && exists(/databases/$(database)/documents/members/$(request.auth.uid));
     }
+    // 마스터 계정: members 문서에 role: "admin" → 모든 직원의 사진·서명을 보고 지울 수 있음
+    // 그 밖의 계정(기본): 자기가 올린 것만 보고 지울 수 있음
+    function isAdmin() {
+      return isMember() && get(/databases/$(database)/documents/members/$(request.auth.uid)).data.get('role', '') == 'admin';
+    }
+    function canSee() {
+      return isAdmin() || (isMember() && resource.data.by == request.auth.uid);
+    }
     function okTimes(d) {
       return d.createdAt == request.time
         && d.expireAt is timestamp
         && d.expireAt > request.time
         && d.expireAt < request.time + duration.value(8, 'd');
     }
-    // 미리보기(작은 사진)·촬영번호·시각만 허용
+    // 미리보기(작은 그림)·종류·촬영번호·시각만 허용
     function validMeta(d) {
-      return d.keys().hasOnly(['thumb', 'w', 'h', 'label', 'by', 'createdAt', 'expireAt'])
+      return d.keys().hasOnly(['thumb', 'w', 'h', 'label', 'kind', 'cid', 'by', 'createdAt', 'expireAt'])
         && d.keys().hasAll(['thumb', 'w', 'h', 'label', 'by', 'createdAt', 'expireAt'])
         && d.thumb is string && d.thumb.size() < 60000
         && d.w is number && d.h is number
         && d.label is string && d.label.size() <= 20
+        && (!('kind' in d) || d.kind in ['photo', 'sign', 'doc'])
+        && (!('cid' in d) || (d.cid is string && d.cid.matches('^[0-9a-f]{16}$')))
         && d.by == request.auth.uid
         && okTimes(d);
     }
-    // 원본 사진(JPEG base64)만 허용
+    // 원본(JPEG 사진·서류 스캔 또는 서명 그림 묶음)만 허용
     function validData(d) {
       return d.keys().hasOnly(['data', 'by', 'createdAt', 'expireAt'])
         && d.keys().hasAll(['data', 'by', 'createdAt', 'expireAt'])
         && d.data is string && d.data.size() < 1000000
+        && d.by == request.auth.uid
+        && okTimes(d);
+    }
+
+    // 현장 목록: 암호문(ct)·초기값(iv)·건수·방식만 허용
+    function validCases(d) {
+      return d.keys().hasOnly(['ct', 'iv', 'n', 'm', 'by', 'createdAt', 'expireAt'])
+        && d.keys().hasAll(['ct', 'iv', 'n', 'm', 'by', 'createdAt', 'expireAt'])
+        && d.ct is string && d.ct.size() < 300000
+        && d.iv is string && d.iv.size() <= 24
+        && d.n is number && d.m in ['auto', 'pass']
         && d.by == request.auth.uid
         && okTimes(d);
     }
@@ -40,14 +64,32 @@ service cloud.firestore {
       allow list, create, update, delete: if false;
     }
 
+    // 현장 목록 자동 열쇠: 등록 직원만 읽기, 마스터만 최초 1회 생성 (바꾸거나 지울 수 없음)
+    match /teamKeys/{id} {
+      allow read: if isMember();
+      allow create: if isAdmin()
+        && request.resource.data.keys().hasOnly(['k', 'createdAt'])
+        && request.resource.data.k is string && request.resource.data.k.size() == 44
+        && request.resource.data.createdAt == request.time;
+      allow update, delete: if false;
+    }
+
+    // 현장 목록 (암호화): 등록 직원 모두 읽기 (현장에서 건 선택), 보낸 사람·마스터만 삭제
+    match /fieldCases/{id} {
+      allow read: if isMember();
+      allow create: if isMember() && validCases(request.resource.data);
+      allow delete: if isAdmin() || (isMember() && resource.data.by == request.auth.uid);
+      allow update: if false;
+    }
+
     match /fieldPhotos/{id} {
-      allow read, delete: if isMember();
+      allow read, delete: if canSee();
       allow create: if isMember() && validMeta(request.resource.data);
       allow update: if false;
     }
 
     match /fieldPhotoData/{id} {
-      allow read, delete: if isMember();
+      allow read, delete: if canSee();
       allow create: if isMember() && validData(request.resource.data);
       allow update: if false;
     }

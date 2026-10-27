@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#16325c">
-<title>현장 촬영 · 기밀시험 결과지</title>
+<title>현장 촬영 · 공급전 안전점검</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -41,8 +41,57 @@ main{padding:16px;max-width:560px;margin:0 auto}
 .rv-a button{border:1px solid var(--line);background:#fff;border-radius:10px;padding:12px 4px;font-size:14px;font-weight:600}
 .rv-a button.pri{grid-column:1/-1;background:var(--teal);border-color:var(--teal);color:#fff;font-size:17px;padding:14px}
 .rv-a button:disabled{opacity:.4}
-.mtabs{display:grid;grid-template-columns:1fr 1fr;background:#e4e9f0;border-radius:12px;padding:4px;margin-bottom:14px}
-.mtabs button{border:0;background:none;border-radius:9px;padding:11px 4px;font-weight:700;color:var(--ink-2);font-size:15px}
+.mtabs{display:grid;grid-template-columns:1fr 1fr 1fr;background:#e4e9f0;border-radius:12px;padding:4px;margin-bottom:14px}
+.mtabs button{border:0;background:none;border-radius:9px;padding:11px 2px;font-weight:700;color:var(--ink-2);font-size:14px;white-space:nowrap}
+/* 기타 서류 */
+.dtype{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:12px}
+.dtype button{border:1px solid #c9d2dd;background:#fff;border-radius:10px;padding:10px 4px;font-size:13px;font-weight:600;color:var(--ink-2);line-height:1.3}
+.dtype button.on{background:var(--navy);border-color:var(--navy);color:#fff}
+.rv-a.doc{grid-template-columns:1fr 1fr}
+.rv-opt{display:flex;justify-content:center;gap:0;margin:2px 0 8px}
+.rv-opt button{border:1px solid #c9d2dd;background:#fff;padding:7px 14px;font-size:13px;font-weight:600;color:var(--ink-2)}
+.rv-opt button:first-child{border-radius:8px 0 0 8px} .rv-opt button:last-child{border-radius:0 8px 8px 0;border-left:0}
+.rv-opt button.on{background:var(--teal);border-color:var(--teal);color:#fff}
+.rv-tag{display:inline-block;background:var(--teal-soft);color:#0b5f61;border-radius:6px;padding:1px 8px;font-size:12px;font-weight:700;margin-bottom:6px}
+/* 점검 중인 건 */
+.casebar{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:12px}
+.casebar.warn{border-color:#f2b233;background:var(--warn-soft)}
+.casebar .ci{font-size:22px}
+.casebar .ct{flex:1;min-width:0}
+.casebar .ct small{display:block;font-size:11px;color:var(--ink-3)}
+.casebar .ct b{display:block;font-size:15px;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.casebar .ct span{display:block;font-size:12px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.casebar button{border:0;border-radius:9px;background:var(--navy);color:#fff;font-weight:700;padding:10px 12px;font-size:14px;white-space:nowrap}
+.cp{position:fixed;inset:0;z-index:110;background:rgba(15,22,32,.55);display:flex;align-items:flex-end}
+.cp-in{background:var(--bg);width:100%;max-height:86vh;border-radius:16px 16px 0 0;display:flex;flex-direction:column;padding-bottom:env(safe-area-inset-bottom)}
+.cp-h{display:flex;align-items:center;gap:8px;padding:14px 16px 8px}
+.cp-h b{flex:1;font-size:17px;color:var(--navy)}
+.cp-h button{border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 10px;font-size:13px}
+.cp-q{margin:0 16px 8px;border:1px solid #c9d2dd;border-radius:10px;padding:11px 12px;font-size:16px;background:#fff}
+.cp-l{overflow:auto;padding:0 16px 14px;display:flex;flex-direction:column;gap:8px}
+.cp-it{display:block;width:100%;text-align:left;border:1px solid var(--line);background:#fff;border-radius:10px;padding:11px 12px}
+.cp-it b{display:block;font-size:15px;color:var(--ink)}
+.cp-it span{display:block;font-size:13px;color:var(--ink-2);margin-top:2px}
+.cp-it.on{border:2px solid var(--teal);background:var(--teal-soft)}
+.cp-it.none b{color:var(--ink-3);font-weight:600}
+.it .cs{font-size:12px;color:var(--teal);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* 모서리 맞추기 화면 */
+.sc{position:fixed;inset:0;z-index:120;background:#111821;display:flex;flex-direction:column;touch-action:none;user-select:none;-webkit-user-select:none}
+.sc-h{display:flex;align-items:center;gap:8px;padding:10px 14px;padding-top:calc(10px + env(safe-area-inset-top));background:var(--navy);color:#fff}
+.sc-h b{flex:1;font-size:16px}
+.sc-h button{border:0;border-radius:8px;padding:8px 14px;background:rgba(255,255,255,.14);color:#fff;font-weight:700}
+.sc-st{flex:1;position:relative;overflow:hidden}
+.sc-img{position:absolute;box-shadow:0 0 0 1px rgba(255,255,255,.15)}
+.sc-svg{position:absolute;inset:0;pointer-events:none}
+.sc-poly{fill:rgba(47,128,255,.16);stroke:#2f80ff;stroke-width:3}
+.sc-hd{position:absolute;width:46px;height:46px;margin:-23px 0 0 -23px;border-radius:50%;background:rgba(47,128,255,.25);border:3px solid #2f80ff;touch-action:none}
+.sc-hd::after{content:'';position:absolute;left:50%;top:50%;width:10px;height:10px;margin:-5px 0 0 -5px;border-radius:50%;background:#fff}
+.sc-hd.on{background:rgba(47,128,255,.45)}
+.sc-lp{position:absolute;top:14px;display:none;border-radius:50%;border:3px solid #fff;box-shadow:0 4px 14px rgba(0,0,0,.5);pointer-events:none}
+.sc-tip{color:#aebcd2;text-align:center;font-size:13px;padding:6px}
+.sc-f{display:grid;grid-template-columns:1fr 1fr 1fr 1.4fr;gap:8px;padding:10px 12px calc(12px + env(safe-area-inset-bottom));background:#0c121a}
+.sc-f button{border:0;border-radius:10px;padding:13px 4px;background:#26313f;color:#fff;font-weight:700;font-size:15px}
+.sc-f button.ok{background:var(--teal)}
 .mtabs button.on{background:#fff;color:var(--navy);box-shadow:0 1px 4px rgba(0,0,0,.12)}
 .sgq{display:flex;flex-direction:column;gap:12px;margin-bottom:12px}
 .sgq>div{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:14px}
@@ -97,7 +146,7 @@ input[type=email],input[type=password]{width:100%;border:1px solid #c9d2dd;borde
 </head>
 <body>
 <header>
-  <div class="t">기밀시험 결과지 촬영<small>공급전 안전점검 · 현장 사진함 <span id="demoTag" class="hidden" style="background:#f2b233;color:#1b2430;border-radius:6px;padding:0 6px;font-weight:700">👑 마스터</span></small></div>
+  <div class="t">현장 촬영 · 서명<small>공급전 안전점검 · 현장 사진함 <span id="demoTag" class="hidden" style="background:#f2b233;color:#1b2430;border-radius:6px;padding:0 6px;font-weight:700">👑 마스터</span></small></div>
   <button data-install class="hidden" style="background:#0f8b8d">📲 앱 설치</button>
   <a href="./" style="color:#fff;font-size:13px;text-decoration:none;background:rgba(255,255,255,.12);border-radius:6px;padding:6px 10px">보고서 화면</a>
   <button id="outBtn" class="hidden">로그아웃</button>
@@ -120,7 +169,8 @@ input[type=email],input[type=password]{width:100%;border:1px solid #c9d2dd;borde
   </div>
   <!-- 촬영 -->
   <div id="vMain" class="hidden">
-    <div class="mtabs"><button data-mode="photo" class="on">📷 결과지 촬영</button><button data-mode="sign">✍️ 서명 받기</button></div>
+    <div class="casebar" id="caseBar"><div class="ci">📍</div><div class="ct"><small>점검 중인 건 (촬영·서명이 이 건으로 분류됩니다)</small><b id="caseName">건 선택 안 함</b><span id="caseAddr"></span></div><button id="casePick">건 선택</button></div>
+    <div class="mtabs"><button data-mode="photo" class="on">📷 결과지</button><button data-mode="doc">📄 기타 서류</button><button data-mode="sign">✍️ 서명</button></div>
     <div id="mPhoto">
     <div class="note">📌 <b>기밀시험 결과지만</b> 촬영하세요.<br>이름·주소 등은 입력하지 않습니다. 사진은 사무실 PC에서 해당 건에 연결되며, 서버에서는 <b id="keepDays">3</b>일 뒤 자동 삭제됩니다.</div>
     <div id="review" class="hidden"></div>
@@ -129,6 +179,17 @@ input[type=email],input[type=password]{width:100%;border:1px solid #c9d2dd;borde
       <input type="file" id="cam" accept="image/*" capture="environment"></label>
     <label class="alt">🖼 앨범에서 선택<input type="file" id="pick" accept="image/*" multiple></label>
     </div>
+    </div>
+    <div id="mDoc" class="hidden">
+      <div class="note">📄 보일러 시공·보험가입확인서, 가스안전공사 필증 등을 <b>스캔본처럼</b> 촬영합니다. 찍으면 서류 테두리를 자동으로 찾아 반듯하게 펴고 하얗게 보정합니다. 서버에서는 <b>3</b>일 뒤 자동 삭제됩니다.</div>
+      <div class="dtype" id="dtype"><button data-dt="보일러" class="on">보일러 시공·<br>보험확인서</button><button data-dt="필증">가스안전공사<br>필증</button><button data-dt="서류">기타<br>서류</button></div>
+      <div id="docReview" class="hidden"></div>
+      <div id="docShoot">
+        <label class="shoot"><span class="ic">📄</span>서류 스캔 촬영
+          <input type="file" id="dcam" accept="image/*" capture="environment"></label>
+        <label class="alt">🖼 앨범에서 선택<input type="file" id="dpick" accept="image/*"></label>
+        <div style="font-size:13px;color:var(--ink-3);text-align:center;margin-top:10px;line-height:1.6">💡 어두운 바닥 위에 서류를 놓고, 네 모서리가 모두 보이게 찍으면 가장 잘 인식됩니다.</div>
+      </div>
     </div>
     <div id="mSign" class="hidden">
       <div class="note">✍️ <b>서명만</b> 받습니다. 이름·주소는 입력하지 않으며, 사무실 PC에서 해당 건의 「안전교육 및 개인정보 동의서」에 들어갑니다. 서버에서는 3일 뒤 자동 삭제됩니다.</div>
@@ -143,19 +204,21 @@ input[type=email],input[type=password]{width:100%;border:1px solid #c9d2dd;borde
       </div>
       <div id="signReview" class="hidden"></div>
     </div>
-    <h3>오늘 올린 사진·서명 <span id="cnt"></span></h3>
+    <h3>오늘 올린 사진·서류·서명 <span id="cnt"></span></h3>
     <div class="list" id="list"></div>
   </div>
 </main>
 <div class="toast" id="toast"></div>
 <script>
-/* ===== 현장 사진함 (Firebase) — 기밀시험 결과지 사진만 저장, 식별정보 없음 =====
+/* ===== 현장 사진함 (Firebase) — 기밀시험 결과지·기타 서류 사진, 서명 그림 (3일 보관, 글자 식별정보 필드 없음) =====
    fieldPhotos/{id}    : thumb(작은 미리보기), w, h, label("10/23 #3"), by(업로더 uid), createdAt, expireAt
    fieldPhotoData/{id} : data(원본 JPEG base64), by, createdAt, expireAt
    주소·이름·계약번호 등 어떤 식별정보도 저장하지 않습니다. */
 const FieldStore = (() => {
   const SDK = 'https://www.gstatic.com/firebasejs/10.14.1/';
-  const META = 'fieldPhotos', DATA = 'fieldPhotoData';
+  const META = 'fieldPhotos', DATA = 'fieldPhotoData', CASES = 'fieldCases', KEYS = 'teamKeys';
+  const bytesToB64 = u => { let s = ''; for (let i = 0; i < u.length; i += 0x8000) s += String.fromCharCode.apply(null, u.subarray(i, i + 0x8000)); return btoa(s); };
+  const b64ToBytes = b => { const s = atob(b), u = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) u[i] = s.charCodeAt(i); return u; };
   const KEEP_DAYS = 3;
   const CFG_KEY = 'pssr.fbconfig';
   let fb = null, auth = null, db = null, initP = null;
@@ -210,7 +273,7 @@ const FieldStore = (() => {
     onAuth(cb){ return auth.onAuthStateChanged(cb); },
     user: () => auth && auth.currentUser,
     signIn: (e, p) => auth.signInWithEmailAndPassword(e, p),
-    signOut: () => auth.signOut(),
+    signOut(){ this._key = null; return auth.signOut(); },
     role: '',   // 'admin'(마스터: 전체 보기) | 'user'(일반: 본인 것만)
     isDemo(){ return this.role !== 'admin'; },   // 일반 계정 = 본인이 올린 것만
     isAdmin(){ return this.role === 'admin'; },
@@ -219,12 +282,68 @@ const FieldStore = (() => {
       try{ const d = await db.collection('members').doc(u.uid).get(); if (!d.exists) return false;
         this.role = d.data().role === 'admin' ? 'admin' : 'user'; return true; }catch(e){ return false; }
     },
-    async upload({thumb, w, h, label, data, kind}){
+    /* --- 현장 목록 (암호화) ---
+       teamKeys/main : 자동 열쇠(무작위 256비트). 등록 직원만 읽기, 마스터만 최초 1회 생성
+       fieldCases/{id} : 선택한 건의 시설명·주소·구분·검사일만 AES-GCM으로 암호화한 묶음 (3일 보관)
+       건 번호(cid) : 계약번호를 열쇠로 HMAC 한 값 앞 16자리 → 서버에서는 어느 계약인지 알 수 없음
+       m: 'auto' = 자동 열쇠 방식 (추후 'pass' = 공용 비밀번호 방식으로 전환 가능) */
+    _key: null,
+    async teamKey(){
+      if (this._key) return this._key;
+      const ref = db.collection(KEYS).doc('main');
+      let d = await ref.get();
+      if (!d.exists){
+        if (!this.isAdmin()) throw new Error('현장 목록 열쇠가 아직 없습니다. 마스터 계정으로 한 번 「현장 목록 보내기」를 해 주세요.');
+        const raw = crypto.getRandomValues(new Uint8Array(32));
+        const b = db.batch(); b.set(ref, {k: bytesToB64(raw), createdAt: fb.firestore.FieldValue.serverTimestamp()});
+        try{ await b.commit(); }catch(e){}           // 다른 PC가 먼저 만들었으면 그 열쇠를 씀
+        d = await ref.get(); if (!d.exists) throw new Error('현장 목록 열쇠를 만들지 못했습니다.');
+      }
+      const raw = b64ToBytes(d.data().k);
+      const aes = await crypto.subtle.importKey('raw', raw, 'AES-GCM', false, ['encrypt', 'decrypt']);
+      const hraw = new Uint8Array(await crypto.subtle.digest('SHA-256', new Uint8Array([...new TextEncoder().encode('pssr-cid:'), ...raw])));
+      const hmac = await crypto.subtle.importKey('raw', hraw, {name: 'HMAC', hash: 'SHA-256'}, false, ['sign']);
+      return (this._key = {aes, hmac, mode: 'auto'});
+    },
+    async caseId(contractNo){
+      const k = await this.teamKey();
+      const s = new Uint8Array(await crypto.subtle.sign('HMAC', k.hmac, new TextEncoder().encode(String(contractNo))));
+      return [...s.slice(0, 8)].map(b => b.toString(16).padStart(2, '0')).join('');
+    },
+    async sendCases(cases){    // cases: [{no, name, addr, kind, date}]
+      const u = auth.currentUser; if (!u) throw new Error('로그인이 필요합니다.');
+      const k = await this.teamKey();
+      const list = [];
+      for (const c of cases) list.push({c: await this.caseId(c.no), n: String(c.name || ''), a: String(c.addr || ''), k: String(c.kind || ''), d: String(c.date || '')});
+      const iv = crypto.getRandomValues(new Uint8Array(12));
+      const ct = new Uint8Array(await crypto.subtle.encrypt({name: 'AES-GCM', iv}, k.aes, new TextEncoder().encode(JSON.stringify(list))));
+      const b = db.batch();
+      b.set(db.collection(CASES).doc(), {ct: bytesToB64(ct), iv: bytesToB64(iv), n: list.length, m: k.mode, by: u.uid,
+        createdAt: fb.firestore.FieldValue.serverTimestamp(), expireAt: ts(expireDate())});
+      await b.commit();
+      return list.length;
+    },
+    async listCases(){
+      const k = await this.teamKey();
+      const s = await db.collection(CASES).get(), now = new Date(), map = {};
+      const docs = s.docs.map(d => d.data()).filter(d => { const e = toDate(d.expireAt); return !e || e > now; })
+        .sort((a, b) => (toDate(a.createdAt) || now) - (toDate(b.createdAt) || now));
+      for (const d of docs){
+        try{
+          const pt = await crypto.subtle.decrypt({name: 'AES-GCM', iv: b64ToBytes(d.iv)}, k.aes, b64ToBytes(d.ct));
+          for (const c of JSON.parse(new TextDecoder().decode(pt))) map[c.c] = {cid: c.c, name: c.n, addr: c.a, kind: c.k, date: c.d};
+        }catch(e){}   // 다른 열쇠로 잠긴 목록은 건너뜀
+      }
+      return Object.values(map).sort((a, b) => String(a.date).localeCompare(String(b.date)) || String(a.name).localeCompare(String(b.name), 'ko'));
+    },
+    async upload({thumb, w, h, label, data, kind, cid}){
       const u = auth.currentUser; if (!u) throw new Error('로그인이 필요합니다.');
       const ref = db.collection(META).doc();
       const now = fb.firestore.FieldValue.serverTimestamp(), exp = ts(expireDate());
       const b = db.batch();
-      b.set(ref, {thumb, w, h, label, kind: kind === 'sign' ? 'sign' : 'photo', by: u.uid, createdAt: now, expireAt: exp});
+      const meta = {thumb, w, h, label, kind: ['sign', 'doc'].includes(kind) ? kind : 'photo', by: u.uid, createdAt: now, expireAt: exp};
+      if (cid && /^[0-9a-f]{16}$/.test(cid)) meta.cid = cid;
+      b.set(ref, meta);
       b.set(db.collection(DATA).doc(ref.id), {data, by: u.uid, createdAt: now, expireAt: exp});
       await b.commit();
       return ref.id;
@@ -256,10 +375,12 @@ const FieldStore = (() => {
         const u = auth.currentUser; if (!u) return 0; let n = 0;
         const s = await db.collection(META).where('by', '==', u.uid).get();
         for (const d of s.docs){ const e = toDate(d.data().expireAt); if (e && e < new Date()){ try{ await this.remove(d.id); n++; }catch(err){} } }
+        try{ const c = await db.collection(CASES).where('by', '==', u.uid).get();
+          for (const d of c.docs){ const e = toDate(d.data().expireAt); if (e && e < new Date()) try{ await d.ref.delete(); }catch(err){} } }catch(err){}
         return n;
       }
       const now = ts(new Date()); let n = 0;
-      for (const col of [META, DATA]){
+      for (const col of [META, DATA, CASES]){
         const s = await db.collection(col).where('expireAt', '<', now).limit(200).get();
         for (const d of s.docs){ await d.ref.delete(); if (col === META) n++; }
       }
@@ -356,6 +477,236 @@ function setupAppInstall(){
   });
 }
 
+/* ===== 서류 스캔: 자동 테두리 인식 · 모서리 조정 · 원근 보정 · 문서 보정 (외부 라이브러리 없음) ===== */
+const DocScan = (() => {
+  // 사진 → 작업용 캔버스 (긴 변 최대 MAX px, EXIF 회전 반영)
+  async function loadSource(file, MAX = 2400){
+    const bmp = await createImageBitmap(file, {imageOrientation:'from-image'});
+    const k = Math.min(1, MAX / Math.max(bmp.width, bmp.height));
+    const c = document.createElement('canvas'); c.width = Math.round(bmp.width * k); c.height = Math.round(bmp.height * k);
+    c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height); bmp.close && bmp.close();
+    return c;
+  }
+  function rotate90(src){
+    const c = document.createElement('canvas'); c.width = src.height; c.height = src.width;
+    const g = c.getContext('2d'); g.translate(c.width, 0); g.rotate(Math.PI / 2); g.drawImage(src, 0, 0);
+    return c;
+  }
+  const inset = (w, h, f = 0.06) => [[w*f, h*f], [w*(1-f), h*f], [w*(1-f), h*(1-f)], [w*f, h*(1-f)]];
+  const full = (w, h) => [[0, 0], [w, 0], [w, h], [0, h]];
+  const area = q => Math.abs(q.reduce((s, p, i) => { const r = q[(i + 1) % 4]; return s + p[0] * r[1] - r[0] * p[1]; }, 0)) / 2;
+
+  /* --- 자동 인식: 밝은 종이 영역(Otsu) → 가장 큰 덩어리 → 볼록껍질 → 넓이 최대 사각형 --- */
+  function detect(src){
+    const S = 360, k = Math.min(1, S / Math.max(src.width, src.height));
+    const W = Math.max(8, Math.round(src.width * k)), H = Math.max(8, Math.round(src.height * k));
+    const c = document.createElement('canvas'); c.width = W; c.height = H;
+    const g = c.getContext('2d', {willReadFrequently: true}); g.drawImage(src, 0, 0, W, H);
+    const d = g.getImageData(0, 0, W, H).data, N = W * H;
+    let gr = new Float32Array(N);
+    for (let i = 0; i < N; i++) gr[i] = d[i*4] * 0.299 + d[i*4+1] * 0.587 + d[i*4+2] * 0.114;
+    const blur = (a, r) => {        // 가로·세로 상자 흐림
+      const t = new Float32Array(N), o = new Float32Array(N);
+      for (let y = 0; y < H; y++){ let s = 0, n = 0; for (let x = -r; x < W + r; x++){
+        if (x + r < W){ s += a[y*W + x + r]; n++; } if (x - r - 1 >= 0){ s -= a[y*W + x - r - 1]; n--; } if (x >= 0 && x < W) t[y*W + x] = s / n; } }
+      for (let x = 0; x < W; x++){ let s = 0, n = 0; for (let y = -r; y < H + r; y++){
+        if (y + r < H){ s += t[(y + r)*W + x]; n++; } if (y - r - 1 >= 0){ s -= t[(y - r - 1)*W + x]; n--; } if (y >= 0 && y < H) o[y*W + x] = s / n; } }
+      return o;
+    };
+    gr = blur(blur(gr, 2), 2);
+    // Otsu 임계값
+    const hist = new Float64Array(256); for (let i = 0; i < N; i++) hist[gr[i] | 0]++;
+    let sum = 0; for (let v = 0; v < 256; v++) sum += v * hist[v];
+    let wB = 0, sB = 0, best = -1, th = 128;
+    for (let v = 0; v < 256; v++){ wB += hist[v]; if (!wB) continue; const wF = N - wB; if (!wF) break; sB += v * hist[v];
+      const m = sB / wB - (sum - sB) / wF, b = wB * wF * m * m; if (b > best){ best = b; th = v; } }
+    let bin = new Uint8Array(N); for (let i = 0; i < N; i++) bin[i] = gr[i] > th ? 1 : 0;
+    // 열기(침식→팽창): 종이와 밝은 배경 사이의 가는 연결을 끊음
+    const morph = (a, r, isErode) => { const o = new Uint8Array(N);
+      for (let y = 0; y < H; y++) for (let x = 0; x < W; x++){ let v = isErode ? 1 : 0;
+        for (let dy = -r; dy <= r && (isErode ? v : !v); dy++){ const yy = y + dy; if (yy < 0 || yy >= H){ if (isErode) v = 0; continue; }
+          for (let dx = -r; dx <= r; dx++){ const xx = x + dx; if (xx < 0 || xx >= W){ if (isErode){ v = 0; break; } continue; }
+            const b = a[yy*W + xx]; if (isErode && !b){ v = 0; break; } if (!isErode && b){ v = 1; break; } } }
+        o[y*W + x] = v; } return o; };
+    bin = morph(morph(bin, 2, true), 2, false);
+    // 연결 요소: 넓이가 크고 가운데에 가까운 덩어리
+    const lab = new Int32Array(N); let nl = 0, bestL = 0, bestScore = 0; const stack = new Int32Array(N);
+    const cx = W / 2, cy = H / 2;
+    for (let i = 0; i < N; i++){ if (!bin[i] || lab[i]) continue; nl++; let sp = 0, a = 0, mx = 0, my = 0; stack[sp++] = i; lab[i] = nl;
+      while (sp){ const j = stack[--sp], x = j % W, y = (j / W) | 0; a++; mx += x; my += y;
+        if (x > 0 && bin[j-1] && !lab[j-1]){ lab[j-1] = nl; stack[sp++] = j-1; } if (x < W-1 && bin[j+1] && !lab[j+1]){ lab[j+1] = nl; stack[sp++] = j+1; }
+        if (y > 0 && bin[j-W] && !lab[j-W]){ lab[j-W] = nl; stack[sp++] = j-W; } if (y < H-1 && bin[j+W] && !lab[j+W]){ lab[j+W] = nl; stack[sp++] = j+W; } }
+      const dist = Math.hypot(mx / a - cx, my / a - cy) / Math.hypot(cx, cy), score = a * (1.2 - dist);
+      if (score > bestScore){ bestScore = score; bestL = nl; } }
+    const fb = {quad: inset(src.width, src.height), auto: false};
+    if (!bestL) return fb;
+    // 각 행의 양 끝점 → 볼록껍질
+    const pts = [];
+    for (let y = 0; y < H; y++){ let l = -1, r = -1; for (let x = 0; x < W; x++) if (lab[y*W + x] === bestL){ if (l < 0) l = x; r = x; } if (l >= 0){ pts.push([l, y]); if (r !== l) pts.push([r + 1, y]); } }
+    if (pts.length < 4) return fb;
+    pts.sort((a, b) => a[0] - b[0] || a[1] - b[1]);
+    const cross = (o, a, b) => (a[0]-o[0]) * (b[1]-o[1]) - (a[1]-o[1]) * (b[0]-o[0]);
+    const lo = [], hi = [];
+    for (const p of pts){ while (lo.length >= 2 && cross(lo[lo.length-2], lo[lo.length-1], p) <= 0) lo.pop(); lo.push(p); }
+    for (let i = pts.length - 1; i >= 0; i--){ const p = pts[i]; while (hi.length >= 2 && cross(hi[hi.length-2], hi[hi.length-1], p) <= 0) hi.pop(); hi.push(p); }
+    const hull = lo.slice(0, -1).concat(hi.slice(0, -1));
+    if (hull.length < 4) return fb;
+    // 시작: 대각선 방향 극점 → 한 모서리씩 넓이가 커지도록 개선
+    const ext = (fx, fy) => hull.reduce((b, p) => (p[0]*fx + p[1]*fy > b[0]*fx + b[1]*fy ? p : b), hull[0]);
+    let q = [ext(-1, -1), ext(1, -1), ext(1, 1), ext(-1, 1)];
+    for (let pass = 0; pass < 4; pass++) for (let i = 0; i < 4; i++){ let bp = q[i], ba = area(q);
+      for (const p of hull){ const t = q.slice(); t[i] = p; const a = area(t); if (a > ba){ ba = a; bp = p; } } q[i] = bp; }
+    const qa = area(q) / (W * H);
+    if (qa < 0.12) return fb;
+    // 시계방향(좌상→우상→우하→좌하)으로 정렬
+    const mx = q.reduce((s, p) => s + p[0], 0) / 4, my = q.reduce((s, p) => s + p[1], 0) / 4;
+    q.sort((a, b) => Math.atan2(a[1] - my, a[0] - mx) - Math.atan2(b[1] - my, b[0] - mx));
+    let s0 = 0; q.forEach((p, i) => { if (p[0] + p[1] < q[s0][0] + q[s0][1]) s0 = i; });
+    q = [0, 1, 2, 3].map(i => q[(s0 + i) % 4]);
+    const sx = src.width / W, sy = src.height / H;
+    q = q.map(([x, y]) => [x + (mx - x) * 0.006, y + (my - y) * 0.006]);   // 배경이 한 줄 끼지 않게 살짝 안쪽으로
+    return {quad: q.map(([x, y]) => [Math.min(src.width, Math.max(0, x * sx)), Math.min(src.height, Math.max(0, y * sy))]), auto: true};
+  }
+
+  /* --- 원근 보정: 출력 사각형 → 원본 사각형 사상(호모그래피) + 쌍선형 보간 --- */
+  function homography(from, to){
+    const A = [], b = [];
+    for (let i = 0; i < 4; i++){ const [x, y] = from[i], [u, v] = to[i];
+      A.push([x, y, 1, 0, 0, 0, -u*x, -u*y]); b.push(u); A.push([0, 0, 0, x, y, 1, -v*x, -v*y]); b.push(v); }
+    for (let i = 0; i < 8; i++){ let m = i; for (let r = i + 1; r < 8; r++) if (Math.abs(A[r][i]) > Math.abs(A[m][i])) m = r;
+      [A[i], A[m]] = [A[m], A[i]]; [b[i], b[m]] = [b[m], b[i]];
+      for (let r = 0; r < 8; r++){ if (r === i) continue; const f = A[r][i] / A[i][i]; for (let c = i; c < 8; c++) A[r][c] -= f * A[i][c]; b[r] -= f * b[i]; } }
+    return b.map((v, i) => v / A[i][i]).concat(1);
+  }
+  function warp(src, quad, maxSide = 2000){
+    const L = (a, b) => Math.hypot(a[0]-b[0], a[1]-b[1]);
+    let W = Math.max(L(quad[0], quad[1]), L(quad[3], quad[2])), H = Math.max(L(quad[0], quad[3]), L(quad[1], quad[2]));
+    const r = H / W, A4 = 297 / 210;        // A4 비율에 가까우면 A4로 맞춤
+    if (Math.abs(r - A4) / A4 < 0.08) H = W * A4; else if (Math.abs(1 / r - A4) / A4 < 0.08) W = H * A4;
+    const k = Math.min(1.25, maxSide / Math.max(W, H)); W = Math.round(W * k); H = Math.round(H * k);
+    const h = homography([[0, 0], [W, 0], [W, H], [0, H]], quad);
+    const sd = src.getContext('2d', {willReadFrequently: true}).getImageData(0, 0, src.width, src.height), s = sd.data, SW = src.width, SH = src.height;
+    const out = document.createElement('canvas'); out.width = W; out.height = H;
+    const og = out.getContext('2d'), od = og.createImageData(W, H), o = od.data;
+    for (let y = 0; y < H; y++){
+      for (let x = 0; x < W; x++){
+        const den = h[6]*x + h[7]*y + h[8];
+        let u = (h[0]*x + h[1]*y + h[2]) / den, v = (h[3]*x + h[4]*y + h[5]) / den;
+        u = Math.min(SW - 1.001, Math.max(0, u)); v = Math.min(SH - 1.001, Math.max(0, v));
+        const x0 = u | 0, y0 = v | 0, fx = u - x0, fy = v - y0, i0 = (y0*SW + x0) * 4, i1 = i0 + SW*4, j = (y*W + x) * 4;
+        for (let ch = 0; ch < 3; ch++){
+          const a = s[i0+ch] + (s[i0+4+ch] - s[i0+ch]) * fx, b = s[i1+ch] + (s[i1+4+ch] - s[i1+ch]) * fx;
+          o[j+ch] = a + (b - a) * fy;
+        }
+        o[j+3] = 255;
+      }
+    }
+    og.putImageData(od, 0, 0);
+    return out;
+  }
+
+  /* --- 문서 보정: 조명·그림자 제거(종이 밝기로 나눔) → 배경 하얗게, 글씨 진하게 (도장·서명 색은 유지) --- */
+  function enhance(cv){
+    const W = cv.width, H = cv.height, g = cv.getContext('2d', {willReadFrequently: true});
+    const im = g.getImageData(0, 0, W, H), d = im.data;
+    const S = Math.max(8, Math.round(Math.max(W, H) / 40)), GW = Math.ceil(W / S), GH = Math.ceil(H / S);
+    let grid = new Float32Array(GW * GH);
+    for (let gy = 0; gy < GH; gy++) for (let gx = 0; gx < GW; gx++){
+      const vals = [];
+      for (let y = gy*S; y < Math.min(H, gy*S + S); y += 2) for (let x = gx*S; x < Math.min(W, gx*S + S); x += 2){ const i = (y*W + x) * 4; vals.push(d[i]*0.299 + d[i+1]*0.587 + d[i+2]*0.114); }
+      vals.sort((a, b) => a - b); grid[gy*GW + gx] = vals[Math.floor(vals.length * 0.9)] || 255;   // 칸 안에서 밝은 쪽 = 종이
+    }
+    const smooth = a => { const o = new Float32Array(a.length);
+      for (let y = 0; y < GH; y++) for (let x = 0; x < GW; x++){ let s = 0, n = 0;
+        for (let dy = -2; dy <= 2; dy++) for (let dx = -2; dx <= 2; dx++){ const yy = y + dy, xx = x + dx; if (yy >= 0 && yy < GH && xx >= 0 && xx < GW){ s += a[yy*GW + xx]; n++; } }
+        o[y*GW + x] = s / n; } return o; };
+    // 글씨가 몰린 칸은 종이가 어둡게 잡히므로, 주변 최댓값으로 한 번 끌어올린 뒤 부드럽게
+    const lift = new Float32Array(grid.length);
+    for (let y = 0; y < GH; y++) for (let x = 0; x < GW; x++){ let m = 0;
+      for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++){ const yy = y + dy, xx = x + dx; if (yy >= 0 && yy < GH && xx >= 0 && xx < GW) m = Math.max(m, grid[yy*GW + xx]); }
+      lift[y*GW + x] = m; }
+    grid = smooth(smooth(lift));
+    const curve = new Uint8ClampedArray(256);
+    for (let v = 0; v < 256; v++){ const x = Math.min(1, Math.max(0, (v / 255 - 0.12) / (0.86 - 0.12))); curve[v] = 255 * Math.pow(x, 1.35); }
+    for (let y = 0; y < H; y++){
+      const gyf = Math.min(GH - 1, Math.max(0, (y + 0.5) / S - 0.5)), gy0 = gyf | 0, gy1 = Math.min(GH - 1, gy0 + 1), ty = gyf - gy0;
+      for (let x = 0; x < W; x++){
+        const gxf = Math.min(GW - 1, Math.max(0, (x + 0.5) / S - 0.5)), gx0 = gxf | 0, gx1 = Math.min(GW - 1, gx0 + 1), tx = gxf - gx0;
+        const a = grid[gy0*GW + gx0] + (grid[gy0*GW + gx1] - grid[gy0*GW + gx0]) * tx, b = grid[gy1*GW + gx0] + (grid[gy1*GW + gx1] - grid[gy1*GW + gx0]) * tx;
+        const f = 255 / Math.max(48, a + (b - a) * ty), i = (y*W + x) * 4;
+        d[i] = curve[Math.min(255, d[i] * f) | 0]; d[i+1] = curve[Math.min(255, d[i+1] * f) | 0]; d[i+2] = curve[Math.min(255, d[i+2] * f) | 0];
+      }
+    }
+    g.putImageData(im, 0, 0);
+    return cv;
+  }
+
+  /* --- 모서리 조정 화면 (전체 화면) --- */
+  function edit(src0, quad0){
+    return new Promise(resolve => {
+      let src = src0, quad = quad0.map(p => p.slice());
+      const ov = document.createElement('div'); ov.className = 'sc';
+      ov.innerHTML = `<div class="sc-h"><b>서류 모서리 맞추기</b><button data-sc="cancel">취소</button></div>
+        <div class="sc-st"><canvas class="sc-img"></canvas><svg class="sc-svg"><polygon class="sc-poly"></polygon></svg>
+          ${[0,1,2,3].map(i => `<div class="sc-hd" data-i="${i}"></div>`).join('')}<canvas class="sc-lp" width="132" height="132"></canvas></div>
+        <div class="sc-tip">파란 점 4개를 서류 네 모서리에 맞추세요</div>
+        <div class="sc-f"><button data-sc="auto">🔍 자동</button><button data-sc="full">⬚ 전체</button><button data-sc="rot">↻ 회전</button><button data-sc="ok" class="ok">✓ 자르기</button></div>`;
+      document.body.appendChild(ov);
+      const st = ov.querySelector('.sc-st'), cv = ov.querySelector('.sc-img'), svg = ov.querySelector('.sc-svg'), poly = ov.querySelector('.sc-poly'), lp = ov.querySelector('.sc-lp');
+      const hds = [...ov.querySelectorAll('.sc-hd')];
+      let k = 1, ox = 0, oy = 0;
+      const layout = () => {
+        const R = st.getBoundingClientRect(), pad = 26;
+        k = Math.min((R.width - pad*2) / src.width, (R.height - pad*2) / src.height);
+        const w = src.width * k, h = src.height * k; ox = (R.width - w) / 2; oy = (R.height - h) / 2;
+        cv.width = Math.round(w * (devicePixelRatio || 1)); cv.height = Math.round(h * (devicePixelRatio || 1));
+        Object.assign(cv.style, {left: ox + 'px', top: oy + 'px', width: w + 'px', height: h + 'px'});
+        cv.getContext('2d').drawImage(src, 0, 0, cv.width, cv.height);
+        svg.setAttribute('width', R.width); svg.setAttribute('height', R.height);
+        draw();
+      };
+      const draw = () => {
+        poly.setAttribute('points', quad.map(([x, y]) => `${ox + x*k},${oy + y*k}`).join(' '));
+        hds.forEach((h, i) => { h.style.left = (ox + quad[i][0]*k) + 'px'; h.style.top = (oy + quad[i][1]*k) + 'px'; });
+      };
+      const loupe = i => {
+        if (i < 0){ lp.style.display = 'none'; return; }
+        const [x, y] = quad[i], Z = 2.6, g = lp.getContext('2d'), sz = 132 / (Z * k);
+        g.fillStyle = '#222'; g.fillRect(0, 0, 132, 132);
+        g.drawImage(src, x - sz/2, y - sz/2, sz, sz, 0, 0, 132, 132);
+        g.strokeStyle = '#2f80ff'; g.lineWidth = 2; g.beginPath(); g.moveTo(66, 50); g.lineTo(66, 82); g.moveTo(50, 66); g.lineTo(82, 66); g.stroke();
+        lp.style.display = 'block'; lp.style.left = (quad[i][0]*k + ox < st.clientWidth / 2 ? st.clientWidth - 146 : 14) + 'px';
+      };
+      let drag = -1;
+      hds.forEach((h, i) => {
+        h.addEventListener('pointerdown', e => { e.preventDefault(); h.setPointerCapture(e.pointerId); drag = i; h.classList.add('on'); loupe(i); });
+        h.addEventListener('pointermove', e => { if (drag !== i) return; const R = st.getBoundingClientRect();
+          quad[i] = [Math.min(src.width, Math.max(0, (e.clientX - R.left - ox) / k)), Math.min(src.height, Math.max(0, (e.clientY - R.top - oy) / k))]; draw(); loupe(i); });
+        const up = () => { drag = -1; h.classList.remove('on'); loupe(-1); };
+        h.addEventListener('pointerup', up); h.addEventListener('pointercancel', up);
+      });
+      const onR = () => layout(); window.addEventListener('resize', onR);
+      const done = v => { window.removeEventListener('resize', onR); ov.remove(); resolve(v); };
+      ov.addEventListener('click', e => {
+        const b = e.target.closest('[data-sc]'); if (!b) return;
+        const a = b.dataset.sc;
+        if (a === 'cancel') done(null);
+        else if (a === 'auto'){ const r = detect(src); quad = r.quad; draw(); if (!r.auto) toastSafe('서류 테두리를 찾지 못했습니다. 모서리를 직접 맞춰 주세요'); }
+        else if (a === 'full'){ quad = full(src.width, src.height); draw(); }
+        else if (a === 'rot'){ src = rotate90(src); quad = detect(src).quad; layout(); }
+        else if (a === 'ok'){ if (area(quad) < src.width * src.height * 0.02) return toastSafe('영역이 너무 작습니다'); done({src, quad}); }
+      });
+      requestAnimationFrame(layout);
+    });
+  }
+  const toastSafe = m => { try{ toast(m); }catch(e){} };
+  async function process(src, quad, doEnhance){
+    const out = warp(src, quad);
+    return doEnhance ? enhance(out) : out;
+  }
+  return {loadSource, detect, edit, warp, enhance, process, rotate90, full, area};
+})();
+
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 function toast(m){ const t = $('#toast'); t.textContent = m; t.classList.add('on'); clearTimeout(toast.h); toast.h = setTimeout(() => t.classList.remove('on'), 2200); }
@@ -367,15 +718,65 @@ const hm = d => d ? `${p2(d.getHours())}:${p2(d.getMinutes())}` : '';
 let server = [];          // 서버에 있는 내 오늘 사진
 const pending = [];       // 업로드 중/실패
 const review = [];        // 촬영 후 업로드 전 확인 대기
-function nextLabel(kind = 'photo'){
-  const now = new Date(), k = `pssr.field.seq.${kind}.` + dayKey(now), isSign = kind === 'sign';
-  const same = p => isSign === / 서명 /.test(String(p.label));
+// 라벨: "10/27 #3"(결과지) · "10/27 서명 #1" · "10/27 보일러 #2" · "10/27 필증 #1" · "10/27 서류 #1"
+const labelTag = l => String(l).replace(/^\d\d\/\d\d ?/, '').replace(/ ?#\d+$/, '');
+function nextLabel(tag = ''){
+  const now = new Date(), k = `pssr.field.seq.${tag || 'photo'}.` + dayKey(now);
+  const same = p => labelTag(p.label) === tag;
   let n = 0; try{ n = +localStorage.getItem(k) || 0; }catch(e){}
   const num = p => +(String(p.label).split('#')[1] || 0);
   n = Math.max(n, ...server.filter(same).map(num), ...pending.filter(same).map(num), 0) + 1;
   try{ localStorage.setItem(k, n); }catch(e){}
-  return `${p2(now.getMonth()+1)}/${p2(now.getDate())}${isSign ? ' 서명' : ''} #${n}`;
+  return `${p2(now.getMonth()+1)}/${p2(now.getDate())}${tag ? ' ' + tag : ''} #${n}`;
 }
+/* ===== 점검 중인 건 (PC에서 보낸 암호화 현장 목록) ===== */
+let cases = [], caseMap = {}, casesErr = '', curCase = null;
+try{ const c = JSON.parse(localStorage.getItem('pssr.field.case') || 'null'); if (c && c.cid && Date.now() - (c.t || 0) < 3 * 864e5) curCase = c; }catch(e){}
+const curCid = () => curCase ? curCase.cid : '';
+function caseLine(cid){ const c = cid && caseMap[cid]; return cid ? `<div class="cs">📍 ${esc(c ? c.name : '목록에 없는 건')}</div>` : ''; }
+function setCase(c){
+  curCase = c ? {cid: c.cid, name: c.name, addr: c.addr, t: Date.now()} : null;
+  try{ c ? localStorage.setItem('pssr.field.case', JSON.stringify(curCase)) : localStorage.removeItem('pssr.field.case'); }catch(e){}
+  renderCase();
+}
+function renderCase(){
+  $('#caseName').textContent = curCase ? curCase.name : (cases.length ? '건을 선택하세요' : '건 선택 안 함');
+  $('#caseAddr').textContent = curCase ? curCase.addr : (cases.length ? `오늘 목록 ${cases.length}건` : 'PC에서 보낸 현장 목록이 없습니다');
+  $('#caseBar').classList.toggle('warn', !curCase && cases.length > 0);
+}
+async function loadCases(){
+  casesErr = '';
+  try{ cases = await FieldStore.listCases(); }catch(e){ cases = []; casesErr = FieldStore.errMsg(e); }
+  caseMap = Object.fromEntries(cases.map(c => [c.cid, c]));
+  if (curCase && caseMap[curCase.cid]) setCase(caseMap[curCase.cid]); else if (curCase && cases.length) setCase(null);
+  renderCase(); render();
+}
+function openCasePicker(){
+  const ov = document.createElement('div'); ov.className = 'cp';
+  ov.innerHTML = `<div class="cp-in"><div class="cp-h"><b>점검 중인 건 선택</b><button data-cp="reload">↻ 새로고침</button><button data-cp="close">닫기</button></div>
+    <input class="cp-q" type="search" placeholder="시설명·주소 검색" autocomplete="off"><div class="cp-l"></div></div>`;
+  document.body.appendChild(ov);
+  const list = ov.querySelector('.cp-l'), q = ov.querySelector('.cp-q');
+  const draw = () => {
+    const t = q.value.replace(/\s/g, '').toLowerCase();
+    const hit = cases.filter(c => !t || (c.name + c.addr).replace(/\s/g, '').toLowerCase().includes(t));
+    list.innerHTML = (casesErr ? `<div class="empty" style="color:var(--bad)">${esc(casesErr)}</div>` : '') +
+      (!cases.length && !casesErr ? '<div class="empty">아직 현장 목록이 없습니다.<br>사무실 PC에서 ERP 파일을 불러온 뒤 「📤 현장 목록 보내기」를 누르면 여기에 나타납니다.</div>' : '') +
+      hit.map(c => `<button class="cp-it ${curCase && curCase.cid === c.cid ? 'on' : ''}" data-cid="${esc(c.cid)}"><b>${esc(c.name)}</b><span>${esc(c.addr)}</span><span>${esc(c.date)} · ${esc(c.kind)}</span></button>`).join('') +
+      `<button class="cp-it none" data-cid=""><b>건 지정 안 함</b><span>사무실에서 직접 건을 맞춥니다</span></button>`;
+  };
+  draw(); q.addEventListener('input', draw);
+  ov.addEventListener('click', async e => {
+    if (e.target === ov) return ov.remove();
+    const b = e.target.closest('[data-cp]');
+    if (b && b.dataset.cp === 'close') return ov.remove();
+    if (b && b.dataset.cp === 'reload'){ list.innerHTML = '<div class="empty"><span class="spin"></span>불러오는 중…</div>'; await loadCases(); return draw(); }
+    const it = e.target.closest('[data-cid]'); if (!it) return;
+    setCase(it.dataset.cid ? caseMap[it.dataset.cid] : null); ov.remove();
+    toast(curCase ? `📍 ${curCase.name} 선택` : '건 지정 없이 촬영합니다');
+  });
+}
+$('#casePick').onclick = openCasePicker;
 function renderReview(){
   const box = $('#review');
   box.classList.toggle('hidden', !review.length);
@@ -401,10 +802,10 @@ function render(){
   ];
   $('#cnt').textContent = server.length ? `${server.length}장` : '';
   $('#list').innerHTML = items.length ? items.map(p => p.k === 'p'
-    ? `<div class="it"><img src="data:image/jpeg;base64,${p.thumb||''}" alt=""><div><div class="lb">${esc(p.label)}</div>
+    ? `<div class="it"><img src="data:image/jpeg;base64,${p.thumb||''}" alt=""><div style="min-width:0"><div class="lb">${esc(p.label)}</div>${caseLine(p.cid)}
         <div class="st ${p.err?'err':''}">${p.err ? '⚠ ' + esc(p.err) : '<span class="spin"></span>올리는 중…'}</div></div>
         ${p.err ? `<button data-retry="${p.tmp}">다시 시도</button>` : '<span></span>'}</div>`
-    : `<div class="it"><img src="data:image/jpeg;base64,${p.thumb}" alt=""><div><div class="lb">${esc(p.label)}</div>
+    : `<div class="it"><img src="data:image/jpeg;base64,${p.thumb}" alt=""><div style="min-width:0"><div class="lb">${esc(p.label)}</div>${caseLine(p.cid)}
         <div class="st ok">✓ 전송 완료 · ${hm(FieldStore.toDate(p.createdAt))}</div></div>
         <button data-del="${esc(p.id)}">삭제</button></div>`).join('')
     : '<div class="empty">아직 올린 사진이 없습니다</div>';
@@ -419,11 +820,11 @@ async function refresh(){
 async function doUpload(p){
   p.err = ''; render();
   try{
-    await FieldStore.upload({thumb:p.thumb, w:p.w, h:p.h, label:p.label, data:p.data, kind:p.kind});
+    await FieldStore.upload({thumb:p.thumb, w:p.w, h:p.h, label:p.label, data:p.data, kind:p.kind, cid:p.cid});
     pending.splice(pending.indexOf(p), 1);
     toast(`${p.label} 전송 완료`);
     await refresh();
-  }catch(e){ p.err = FieldStore.errMsg(e); render(); }
+  }catch(e){ p.err = FieldStore.errMsg(e) + (p.kind === 'doc' && /permission/.test((e && e.code) || '') ? ' (관리자: Firestore 규칙을 새 버전으로 게시해야 서류를 올릴 수 있습니다)' : ''); render(); }
 }
 async function makeVersions(src){
   const [full, th] = await Promise.all([photoToJpeg(src, 1800, 950000, 0.82), photoToJpeg(src, 240, 55000, 0.7)]);
@@ -448,7 +849,7 @@ async function addFiles(files){
 }
 function uploadReviewed(r){
   review.splice(review.indexOf(r), 1);
-  const p = {tmp: r.tmp, label: nextLabel(), thumb: r.thumb, data: r.data, w: r.w, h: r.h, err: ''};
+  const p = {tmp: r.tmp, label: nextLabel(), thumb: r.thumb, data: r.data, w: r.w, h: r.h, err: '', cid: curCid()};
   pending.unshift(p); doUpload(p);
 }
 $('#review').addEventListener('click', async e => {
@@ -488,7 +889,67 @@ function buildPads(){
     c.addEventListener('signchange', () => c.closest('.pad').classList.toggle('done', !pads[r].empty)); });
 }
 let curMode = 'photo';
-window.addEventListener('hashchange', () => { if (!$('#vMain').classList.contains('hidden')) setMode(location.hash === '#sign' ? 'sign' : 'photo'); });
+const hashMode = () => ({'#sign':'sign', '#doc':'doc', '#photo':'photo'})[location.hash] || '';
+window.addEventListener('hashchange', () => { if (!$('#vMain').classList.contains('hidden')) setMode(hashMode() || 'photo'); });
+
+/* ===== 기타 서류 스캔 ===== */
+const DOC_NAMES = {'보일러':'보일러 시공·보험가입확인서', '필증':'가스안전공사 필증', '서류':'기타 서류'};
+let docType = '보일러';
+const docRev = [];   // 스캔 후 업로드 전 확인 대기
+$('#dtype').addEventListener('click', e => { const b = e.target.closest('[data-dt]'); if (!b) return; docType = b.dataset.dt;
+  document.querySelectorAll('#dtype button').forEach(x => x.classList.toggle('on', x === b)); });
+function renderDoc(){
+  const box = $('#docReview');
+  box.classList.toggle('hidden', !docRev.length); $('#docShoot').classList.toggle('hidden', docRev.length > 0);
+  box.innerHTML = docRev.map(r => `<div class="rv" data-dtmp="${r.tmp}">
+    <span class="rv-tag">${esc(DOC_NAMES[r.dt])}</span>
+    ${r.busy || !r.data ? '<div class="rv-img" style="display:grid;place-items:center;height:260px"><span><span class="spin"></span>반듯하게 펴는 중…</span></div>'
+                        : `<img class="rv-img" src="data:image/jpeg;base64,${r.data}" alt="">`}
+    <div class="rv-opt"><button data-dv="enh" class="${r.enh?'on':''}" ${r.busy?'disabled':''}>✨ 스캔 보정</button><button data-dv="raw" class="${r.enh?'':'on'}" ${r.busy?'disabled':''}>원본 색</button></div>
+    <div class="rv-q">서류만 반듯하게 보이고 글자가 잘 읽히나요?</div>
+    <div class="rv-a doc">
+      <button data-dv="edge" ${r.busy?'disabled':''}>✂ 모서리 다시</button><button data-dv="rot" ${r.busy?'disabled':''}>↻ 회전</button>
+      <button data-dv="retake" ${r.busy?'disabled':''}>📷 다시 찍기</button><button data-dv="cancel">✕ 취소</button>
+      <button data-dv="up" class="pri" ${r.busy||!r.data?'disabled':''}>⬆ 업로드</button>
+    </div></div>`).join('');
+}
+async function docBuild(r){
+  r.busy = true; renderDoc();
+  await new Promise(ok => setTimeout(ok, 30));      // 화면 먼저 갱신
+  try{
+    const out = await DocScan.process(r.src, r.quad, r.enh);
+    const [full, th] = await Promise.all([photoToJpeg(out, 2000, 950000, 0.85), photoToJpeg(out, 240, 55000, 0.7)]);
+    Object.assign(r, {data: full.b64, w: full.w, h: full.h, thumb: th.b64});
+  }catch(e){ toast('서류를 처리하지 못했습니다'); docRev.splice(docRev.indexOf(r), 1); }
+  r.busy = false; renderDoc();
+}
+async function docFromFile(f){
+  let src;
+  try{ src = await DocScan.loadSource(f); }catch(e){ return toast('사진을 열 수 없습니다'); }
+  const res = await DocScan.edit(src, DocScan.detect(src).quad);
+  if (!res) return toast('취소했습니다 (서버에 올라가지 않음)');
+  const r = {tmp: Math.random().toString(36).slice(2), src: res.src, quad: res.quad, enh: true, dt: docType, busy: true};
+  docRev.push(r); window.scrollTo({top: 0, behavior: 'smooth'});
+  await docBuild(r);
+}
+$('#dcam').onchange = e => { const f = e.target.files[0]; e.target.value = ''; if (f) docFromFile(f); };
+$('#dpick').onchange = e => { const f = e.target.files[0]; e.target.value = ''; if (f) docFromFile(f); };
+$('#docReview').addEventListener('click', async e => {
+  const b = e.target.closest('[data-dv]'); if (!b || b.disabled) return;
+  const r = docRev.find(x => x.tmp === b.closest('[data-dtmp]').dataset.dtmp); if (!r) return;
+  const a = b.dataset.dv;
+  if (a === 'enh' || a === 'raw'){ const v = a === 'enh'; if (r.enh !== v){ r.enh = v; docBuild(r); } }
+  else if (a === 'edge'){ const res = await DocScan.edit(r.src, r.quad); if (res){ r.src = res.src; r.quad = res.quad; docBuild(r); } }
+  else if (a === 'rot'){ const H = r.src.height; r.src = DocScan.rotate90(r.src); r.quad = [r.quad[3], r.quad[0], r.quad[1], r.quad[2]].map(([x, y]) => [H - y, x]); docBuild(r); }
+  else if (a === 'retake'){ docRev.splice(docRev.indexOf(r), 1); renderDoc(); $('#dcam').click(); }
+  else if (a === 'cancel'){ docRev.splice(docRev.indexOf(r), 1); renderDoc(); toast('취소했습니다 (서버에 올라가지 않음)'); }
+  else if (a === 'up'){
+    docRev.splice(docRev.indexOf(r), 1); renderDoc();
+    const p = {tmp: r.tmp, kind: 'doc', label: nextLabel(r.dt), thumb: r.thumb, data: r.data, w: r.w, h: r.h, err: '', cid: curCid()};
+    pending.unshift(p); doUpload(p);
+    document.querySelector('#list').scrollIntoView({behavior: 'smooth'});
+  }
+});
 /* 가로 큰 서명판: 가능하면 전체화면+가로 고정, 안 되면 서명판을 90° 돌려서 표시 */
 async function openBigPad(role, chain){
   let locked = false;
@@ -542,9 +1003,9 @@ async function openBigPad(role, chain){
 }
 function setMode(m){
   curMode = m;
-  if (history.replaceState) history.replaceState(null, '', m === 'sign' ? '#sign' : '#photo');
+  if (history.replaceState) history.replaceState(null, '', '#' + m);
   document.querySelectorAll('.mtabs button').forEach(b => b.classList.toggle('on', b.dataset.mode === m));
-  $('#mPhoto').classList.toggle('hidden', m !== 'photo'); $('#mSign').classList.toggle('hidden', m !== 'sign');
+  $('#mPhoto').classList.toggle('hidden', m !== 'photo'); $('#mDoc').classList.toggle('hidden', m !== 'doc'); $('#mSign').classList.toggle('hidden', m !== 'sign');
   if (m === 'sign') setTimeout(buildPads, 30);
 }
 document.querySelector('.mtabs').addEventListener('click', e => { const b = e.target.closest('[data-mode]'); if (b) setMode(b.dataset.mode); });
@@ -585,13 +1046,13 @@ $('#signReview').addEventListener('click', e => {
   if (b.dataset.sr === 'edit'){ $('#signReview').classList.add('hidden'); $('#signForm').classList.remove('hidden'); return; }
   if (b.dataset.sr === 'reset'){ if (confirm('서명을 모두 지우고 처음부터 받을까요?')) resetSign(); return; }
   if (b.dataset.sr === 'up' && signData){
-    const p = {tmp: Math.random().toString(36).slice(2), kind:'sign', label: nextLabel('sign'), thumb: signData.thumb, w: signData.w, h: signData.h,
-               data: JSON.stringify({v:1, sigs: signData.sigs, flags: signData.flags}), err:''};
+    const p = {tmp: Math.random().toString(36).slice(2), kind:'sign', label: nextLabel('서명'), thumb: signData.thumb, w: signData.w, h: signData.h,
+               data: JSON.stringify({v:1, sigs: signData.sigs, flags: signData.flags}), err:'', cid: curCid()};
     pending.unshift(p); resetSign(); doUpload(p);
     document.querySelector('#list').scrollIntoView({behavior:'smooth'});
   }
 });
-window.addEventListener('beforeunload', e => { if (review.length || signData || pending.some(p => !p.err) || Object.values(pads).some(p => !p.empty)) { e.preventDefault(); e.returnValue = ''; } });
+window.addEventListener('beforeunload', e => { if (review.length || docRev.length || signData || pending.some(p => !p.err) || Object.values(pads).some(p => !p.empty)) { e.preventDefault(); e.returnValue = ''; } });
 
 (async () => {
   $('#keepDays').textContent = FieldStore.KEEP_DAYS;
@@ -605,9 +1066,9 @@ window.addEventListener('beforeunload', e => { if (review.length || signData || 
     answered = true;
     if (!u) return show('vLogin');
     if (!(await FieldStore.checkMember())){ show('vLogin'); $('#inErr').textContent = '등록되지 않은 사용자입니다. 관리자에게 사용자 등록을 요청하세요.'; FieldStore.signOut(); return; }
-    show('vMain'); FieldStore.purgeExpired().then(n => { if (n) refresh(); }).catch(() => {}); refresh();
+    show('vMain'); FieldStore.purgeExpired().then(n => { if (n) refresh(); }).catch(() => {}); refresh(); renderCase(); loadCases();
     const tb = $('#demoTag'); if (tb) tb.classList.toggle('hidden', !FieldStore.isAdmin());
-    setMode(location.hash === '#sign' ? 'sign' : (location.hash === '#photo' ? 'photo' : curMode));
+    setMode(hashMode() || curMode);
   });
 })();
 </script>

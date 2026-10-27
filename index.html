@@ -290,11 +290,31 @@ body.inbox-on #p-rep{padding-right:420px}
 .ph img{width:100%;height:150px;object-fit:cover;background:#eef1f4;cursor:zoom-in;display:block}
 .ph .m{padding:6px 8px 2px;font-size:12px;color:var(--ink-3)}
 .ph .m b{color:var(--ink);font-size:13px}
+.ph .cs{margin:0 8px 2px;font-size:11.5px;color:var(--navy);font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ph .cs.none{color:var(--ink-3);font-weight:400}
+.dr-sec{display:flex;align-items:center;gap:8px;background:var(--teal-soft,#e3f4f4);border:1px solid #bfe3e3;border-radius:8px;padding:9px 10px;margin:4px 0 10px}
+.dr-sec b{flex:1;font-size:13px;color:#0b5f61}
+.dr-sec2{font-size:12px;color:var(--ink-3);margin:16px 0 8px;font-weight:700}
 .ph .used{margin:0 8px;font-size:11.5px;color:var(--teal);font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ph .a{display:flex;gap:4px;padding:6px 8px 8px}
 .ph .a .btn{flex:1;justify-content:center;padding:4px 6px;font-size:12px}
 .ph[draggable=true]{cursor:grab}
 .dr-note{background:var(--teal-soft);color:#0b5f61;border-radius:8px;padding:9px 11px;font-size:12.5px;margin-bottom:12px}
+.dl-ov{position:fixed;inset:0;background:rgba(10,20,35,.55);z-index:70;display:flex;align-items:center;justify-content:center;padding:24px}
+.dl-box{background:#fff;border-radius:12px;width:min(1120px,100%);max-height:calc(100vh - 48px);display:flex;flex-direction:column;box-shadow:0 20px 50px rgba(0,0,0,.3)}
+.dl-h{display:flex;align-items:center;gap:10px;padding:16px 20px;border-bottom:1px solid var(--line)}
+.dl-h b{flex:1;font-size:16px;color:var(--navy)}
+.dl-c{display:flex;flex-wrap:wrap;align-items:center;gap:16px;padding:12px 20px;font-size:13px;color:var(--ink-2);border-bottom:1px solid var(--line)}
+.dl-c label{display:flex;align-items:center;gap:6px;white-space:nowrap}
+.dl-c select{border:1px solid #c9d2dd;border-radius:6px;padding:5px 8px;font:inherit}
+.dl-t{overflow:auto;padding:14px 20px}
+.dl-t table{border-collapse:collapse;width:100%;font-size:12.5px}
+.dl-t th{background:#dce6f1;border:1px solid #9aa7b8;padding:6px 8px;font-weight:700;white-space:nowrap}
+.dl-t td{background:#e2efda;border:1px solid #9aa7b8;padding:5px 8px;text-align:center;white-space:nowrap;cursor:text}
+.dl-t td:focus{outline:2px solid var(--teal);background:#fff}
+.dl-t td:empty{background:#fdf3e1}
+.dl-f{display:flex;align-items:center;gap:10px;padding:12px 20px;border-top:1px solid var(--line);font-size:13px;color:var(--ink-2)}
+.dl-f span{flex:1}
 .lightbox{position:fixed;inset:0;background:rgba(10,20,35,.82);z-index:60;display:flex;align-items:center;justify-content:center;padding:24px;cursor:zoom-out}
 .lightbox img{max-width:100%;max-height:100%;background:#fff;box-shadow:0 10px 40px rgba(0,0,0,.4)}
 
@@ -344,7 +364,7 @@ body.inbox-on #p-rep{padding-right:420px}
 
   <!-- ===== 보고서 작성 ===== -->
   <section id="p-rep" class="wrap">
-    <a class="m-cam" href="field.html?v=3"><span class="i">📷</span><span><b>현장 촬영 화면 열기</b><small>기밀시험 결과지를 찍어 사무실 PC의 현장 사진함으로 보냅니다</small></span></a>
+    <a class="m-cam" href="field.html?v=3"><span class="i">📷</span><span><b>현장 촬영 화면 열기</b><small>기밀시험 결과지·기타 서류를 찍어 사무실 PC의 현장 사진함으로 보냅니다</small></span></a>
     <button class="m-cam hidden" data-install style="background:#fff;color:var(--navy);border:1px solid var(--line);width:100%;text-align:left"><span class="i">📲</span><span><b>앱으로 설치하기</b><small style="color:var(--ink-3)">홈 화면 아이콘으로 바로 열고, 주소창 없이 전체 화면으로 씁니다</small></span></button>
     <a class="m-cam" href="field.html?v=3#sign" style="background:var(--teal)"><span class="i">✍️</span><span><b>서명 받기 화면 열기</b><small>안전교육·개인정보 동의서 서명(사용자·시공자 등)을 받습니다</small></span></a>
     <div id="dropZone" class="drop">
@@ -371,7 +391,9 @@ body.inbox-on #p-rep{padding-right:420px}
         <button class="btn teal" id="pdfBtn">⬇ PDF 저장</button>
         <button class="btn pri" id="printBtn">🖨 인쇄</button>
         <span style="width:1px;height:26px;background:var(--line-2);margin:0 2px"></span>
-        <button class="btn inbox-btn" id="inboxBtn" title="현장에서 촬영한 기밀시험 결과지">📷 현장 사진함<span class="cnt hidden" id="inboxCnt">0</span></button>
+        <button class="btn" id="dailyBtn" title="팀즈 「일일업무현황」의 3. 공급 전 안전점검 표에 그대로 붙여넣을 수 있게 복사합니다">📋 일일업무현황</button>
+        <button class="btn" id="sendCasesBtn" title="선택한 건(선택이 없으면 전체)의 시설명·주소·구분·검사일만 암호화해 현장 휴대폰 목록으로 보냅니다 (3일 후 자동 삭제)">📤 현장 목록 보내기</button>
+        <button class="btn inbox-btn" id="inboxBtn" title="현장에서 촬영한 기밀시험 결과지·기타 서류·서명">📷 현장 사진함<span class="cnt hidden" id="inboxCnt">0</span></button>
         <button class="folder" id="dirBtn" title="병합 PDF를 저장할 폴더를 지정합니다">📁 저장 폴더: <b id="dirName">미지정</b></button>
         <button class="btn pri" id="mergeBtn" title="보고서 + 첨부파일을 한 PDF로 합쳐 저장 폴더에 저장합니다">📎 첨부 병합 PDF 저장</button>
       </div>
@@ -451,13 +473,15 @@ body.inbox-on #p-rep{padding-right:420px}
 <div class="toast" id="toast"></div>
 
 <script>
-/* ===== 현장 사진함 (Firebase) — 기밀시험 결과지 사진만 저장, 식별정보 없음 =====
+/* ===== 현장 사진함 (Firebase) — 기밀시험 결과지·기타 서류 사진, 서명 그림 (3일 보관, 글자 식별정보 필드 없음) =====
    fieldPhotos/{id}    : thumb(작은 미리보기), w, h, label("10/23 #3"), by(업로더 uid), createdAt, expireAt
    fieldPhotoData/{id} : data(원본 JPEG base64), by, createdAt, expireAt
    주소·이름·계약번호 등 어떤 식별정보도 저장하지 않습니다. */
 const FieldStore = (() => {
   const SDK = 'https://www.gstatic.com/firebasejs/10.14.1/';
-  const META = 'fieldPhotos', DATA = 'fieldPhotoData';
+  const META = 'fieldPhotos', DATA = 'fieldPhotoData', CASES = 'fieldCases', KEYS = 'teamKeys';
+  const bytesToB64 = u => { let s = ''; for (let i = 0; i < u.length; i += 0x8000) s += String.fromCharCode.apply(null, u.subarray(i, i + 0x8000)); return btoa(s); };
+  const b64ToBytes = b => { const s = atob(b), u = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) u[i] = s.charCodeAt(i); return u; };
   const KEEP_DAYS = 3;
   const CFG_KEY = 'pssr.fbconfig';
   let fb = null, auth = null, db = null, initP = null;
@@ -512,7 +536,7 @@ const FieldStore = (() => {
     onAuth(cb){ return auth.onAuthStateChanged(cb); },
     user: () => auth && auth.currentUser,
     signIn: (e, p) => auth.signInWithEmailAndPassword(e, p),
-    signOut: () => auth.signOut(),
+    signOut(){ this._key = null; return auth.signOut(); },
     role: '',   // 'admin'(마스터: 전체 보기) | 'user'(일반: 본인 것만)
     isDemo(){ return this.role !== 'admin'; },   // 일반 계정 = 본인이 올린 것만
     isAdmin(){ return this.role === 'admin'; },
@@ -521,12 +545,68 @@ const FieldStore = (() => {
       try{ const d = await db.collection('members').doc(u.uid).get(); if (!d.exists) return false;
         this.role = d.data().role === 'admin' ? 'admin' : 'user'; return true; }catch(e){ return false; }
     },
-    async upload({thumb, w, h, label, data, kind}){
+    /* --- 현장 목록 (암호화) ---
+       teamKeys/main : 자동 열쇠(무작위 256비트). 등록 직원만 읽기, 마스터만 최초 1회 생성
+       fieldCases/{id} : 선택한 건의 시설명·주소·구분·검사일만 AES-GCM으로 암호화한 묶음 (3일 보관)
+       건 번호(cid) : 계약번호를 열쇠로 HMAC 한 값 앞 16자리 → 서버에서는 어느 계약인지 알 수 없음
+       m: 'auto' = 자동 열쇠 방식 (추후 'pass' = 공용 비밀번호 방식으로 전환 가능) */
+    _key: null,
+    async teamKey(){
+      if (this._key) return this._key;
+      const ref = db.collection(KEYS).doc('main');
+      let d = await ref.get();
+      if (!d.exists){
+        if (!this.isAdmin()) throw new Error('현장 목록 열쇠가 아직 없습니다. 마스터 계정으로 한 번 「현장 목록 보내기」를 해 주세요.');
+        const raw = crypto.getRandomValues(new Uint8Array(32));
+        const b = db.batch(); b.set(ref, {k: bytesToB64(raw), createdAt: fb.firestore.FieldValue.serverTimestamp()});
+        try{ await b.commit(); }catch(e){}           // 다른 PC가 먼저 만들었으면 그 열쇠를 씀
+        d = await ref.get(); if (!d.exists) throw new Error('현장 목록 열쇠를 만들지 못했습니다.');
+      }
+      const raw = b64ToBytes(d.data().k);
+      const aes = await crypto.subtle.importKey('raw', raw, 'AES-GCM', false, ['encrypt', 'decrypt']);
+      const hraw = new Uint8Array(await crypto.subtle.digest('SHA-256', new Uint8Array([...new TextEncoder().encode('pssr-cid:'), ...raw])));
+      const hmac = await crypto.subtle.importKey('raw', hraw, {name: 'HMAC', hash: 'SHA-256'}, false, ['sign']);
+      return (this._key = {aes, hmac, mode: 'auto'});
+    },
+    async caseId(contractNo){
+      const k = await this.teamKey();
+      const s = new Uint8Array(await crypto.subtle.sign('HMAC', k.hmac, new TextEncoder().encode(String(contractNo))));
+      return [...s.slice(0, 8)].map(b => b.toString(16).padStart(2, '0')).join('');
+    },
+    async sendCases(cases){    // cases: [{no, name, addr, kind, date}]
+      const u = auth.currentUser; if (!u) throw new Error('로그인이 필요합니다.');
+      const k = await this.teamKey();
+      const list = [];
+      for (const c of cases) list.push({c: await this.caseId(c.no), n: String(c.name || ''), a: String(c.addr || ''), k: String(c.kind || ''), d: String(c.date || '')});
+      const iv = crypto.getRandomValues(new Uint8Array(12));
+      const ct = new Uint8Array(await crypto.subtle.encrypt({name: 'AES-GCM', iv}, k.aes, new TextEncoder().encode(JSON.stringify(list))));
+      const b = db.batch();
+      b.set(db.collection(CASES).doc(), {ct: bytesToB64(ct), iv: bytesToB64(iv), n: list.length, m: k.mode, by: u.uid,
+        createdAt: fb.firestore.FieldValue.serverTimestamp(), expireAt: ts(expireDate())});
+      await b.commit();
+      return list.length;
+    },
+    async listCases(){
+      const k = await this.teamKey();
+      const s = await db.collection(CASES).get(), now = new Date(), map = {};
+      const docs = s.docs.map(d => d.data()).filter(d => { const e = toDate(d.expireAt); return !e || e > now; })
+        .sort((a, b) => (toDate(a.createdAt) || now) - (toDate(b.createdAt) || now));
+      for (const d of docs){
+        try{
+          const pt = await crypto.subtle.decrypt({name: 'AES-GCM', iv: b64ToBytes(d.iv)}, k.aes, b64ToBytes(d.ct));
+          for (const c of JSON.parse(new TextDecoder().decode(pt))) map[c.c] = {cid: c.c, name: c.n, addr: c.a, kind: c.k, date: c.d};
+        }catch(e){}   // 다른 열쇠로 잠긴 목록은 건너뜀
+      }
+      return Object.values(map).sort((a, b) => String(a.date).localeCompare(String(b.date)) || String(a.name).localeCompare(String(b.name), 'ko'));
+    },
+    async upload({thumb, w, h, label, data, kind, cid}){
       const u = auth.currentUser; if (!u) throw new Error('로그인이 필요합니다.');
       const ref = db.collection(META).doc();
       const now = fb.firestore.FieldValue.serverTimestamp(), exp = ts(expireDate());
       const b = db.batch();
-      b.set(ref, {thumb, w, h, label, kind: kind === 'sign' ? 'sign' : 'photo', by: u.uid, createdAt: now, expireAt: exp});
+      const meta = {thumb, w, h, label, kind: ['sign', 'doc'].includes(kind) ? kind : 'photo', by: u.uid, createdAt: now, expireAt: exp};
+      if (cid && /^[0-9a-f]{16}$/.test(cid)) meta.cid = cid;
+      b.set(ref, meta);
       b.set(db.collection(DATA).doc(ref.id), {data, by: u.uid, createdAt: now, expireAt: exp});
       await b.commit();
       return ref.id;
@@ -558,10 +638,12 @@ const FieldStore = (() => {
         const u = auth.currentUser; if (!u) return 0; let n = 0;
         const s = await db.collection(META).where('by', '==', u.uid).get();
         for (const d of s.docs){ const e = toDate(d.data().expireAt); if (e && e < new Date()){ try{ await this.remove(d.id); n++; }catch(err){} } }
+        try{ const c = await db.collection(CASES).where('by', '==', u.uid).get();
+          for (const d of c.docs){ const e = toDate(d.data().expireAt); if (e && e < new Date()) try{ await d.ref.delete(); }catch(err){} } }catch(err){}
         return n;
       }
       const now = ts(new Date()); let n = 0;
-      for (const col of [META, DATA]){
+      for (const col of [META, DATA, CASES]){
         const s = await db.collection(col).where('expireAt', '<', now).limit(200).get();
         for (const d of s.docs){ await d.ref.delete(); if (col === META) n++; }
       }
@@ -948,6 +1030,7 @@ function renderList(){
       ${!v._coFound?'<span class="badge b-warn">업체 미등록</span>':''}
       ${e && Object.keys(e).length?'<span class="badge b-edit">수정됨</span>':''}
       ${attCount[r.id]?`<span class="badge b-att">📎 ${attCount[r.id]}</span>`:''}
+      ${fieldCount(r.id)?`<span class="badge b-gam" title="현장에서 이 건으로 올린 자료 중 아직 첨부하지 않은 것">📍 현장 ${fieldCount(r.id)}</span>`:''}
       ${v.cf_on==='1'?'<span class="badge b-gam">✍ 동의서</span>':''}</div></div></div>`;
   }).join('');
   $('#qClear').classList.toggle('hidden', !$('#q').value);
@@ -956,6 +1039,8 @@ function renderList(){
   const nE = rows().filter(r => edits[r.id] && Object.keys(edits[r.id]).length).length;
   $('#fileInfo').innerHTML = `${esc(data.file)} <small>${rows().length}건 · 선택 ${sel.size}건${nE?` · 수정 ${nE}건`:''}</small>`;
   $('#xlsxBtn').disabled = $('#printBtn').disabled = $('#pdfBtn').disabled = $('#mergeBtn').disabled = sel.size === 0;
+  $('#sendCasesBtn').disabled = $('#dailyBtn').disabled = rows().length === 0;
+  ensureCidMap();
 }
 $('#list').addEventListener('click', e => {
   const c = e.target.closest('[data-chk]');
@@ -1532,7 +1617,7 @@ async function buildMergedPdf(rec, host){
   return out.save();
 }
 // 사진 → A4 PDF (문서 보정: 종이 배경을 하얗게, 글씨를 진하게)
-async function photoToA4Pdf(blob, enhance){
+async function photoToA4Pdf(blob, enhance, title = '기밀시험 결과지'){
   await ensurePdfLib();
   const bmp = await createImageBitmap(blob, {imageOrientation:'from-image'});
   const MAX = 2400, sc = Math.min(1, MAX / Math.max(bmp.width, bmp.height));
@@ -1561,7 +1646,7 @@ async function photoToA4Pdf(blob, enhance){
   const land = w > h, PW = land ? A4[1] : A4[0], PH = land ? A4[0] : A4[1], M = 28.35;
   const k = Math.min((PW - 2*M) / w, (PH - 2*M) / h), dw = w * k, dh = h * k;
   doc.addPage([PW, PH]).drawImage(img, {x:(PW - dw)/2, y:(PH - dh)/2, width:dw, height:dh});
-  doc.setTitle('기밀시험 결과지');
+  doc.setTitle(title);
   return new Blob([await doc.save()], {type:'application/pdf'});
 }
 function mergedName(rec){
@@ -1662,7 +1747,7 @@ async function inboxBoot(){
       inboxState = 'on';
       FieldStore.purgeExpired().catch(() => {});
       await loadFieldUsed();
-      inboxUnsub = FieldStore.watchAll(list => { inbox = list; setInboxCount(); renderInbox(); }, e => { inboxState = 'err'; inboxErr = FieldStore.errMsg(e); renderInbox(); });
+      inboxUnsub = FieldStore.watchAll(list => { inbox = list; setInboxCount(); renderInbox(); if (data) renderList(); }, e => { inboxState = 'err'; inboxErr = FieldStore.errMsg(e); renderInbox(); });
       renderInbox();
     });
   }catch(e){ inboxState = 'err'; inboxErr = FieldStore.errMsg(e); }
@@ -1702,39 +1787,156 @@ function renderInbox(){
     return;
   }
   const recName = cur ? view(rows().find(r => r.id === cur) || {src:{}}).name : '';
-  b.innerHTML = (FieldStore.isAdmin() ? `<div class="dr-note" style="margin-bottom:10px">👑 <b>마스터 계정</b> — 모든 직원이 올린 사진·서명이 보입니다.</div>` : `<div class="dr-note" style="margin-bottom:10px">👤 내 계정으로 올린 사진·서명만 보입니다.</div>`) + `<a class="btn teal" href="field.html?v=3" target="_blank" style="width:100%;justify-content:center;margin-bottom:10px;text-decoration:none">📷 현장 촬영 화면 열기 (새 탭)</a>
-    <label style="display:flex;gap:6px;align-items:center;font-size:13px;margin:0 0 10px;color:var(--ink-2)"><input type="checkbox" id="scanFix" ${store.get('pssr.scanfix', true)?'checked':''}> 첨부할 때 <b>문서 보정</b> (종이 배경 하얗게·글씨 진하게) 후 PDF로 변환</label>
+  b.innerHTML = (FieldStore.isAdmin() ? `<div class="dr-note" style="margin-bottom:10px">👑 <b>마스터 계정</b> — 모든 직원이 올린 사진·서류·서명이 보입니다.</div>` : `<div class="dr-note" style="margin-bottom:10px">👤 내 계정으로 올린 사진·서류·서명만 보입니다.</div>`) + `<a class="btn teal" href="field.html?v=3" target="_blank" style="width:100%;justify-content:center;margin-bottom:10px;text-decoration:none">📷 현장 촬영 화면 열기 (새 탭)</a>
+    <label style="display:flex;gap:6px;align-items:center;font-size:13px;margin:0 0 10px;color:var(--ink-2)"><input type="checkbox" id="scanFix" ${store.get('pssr.scanfix', true)?'checked':''}> <span>결과지 첨부할 때 <b>문서 보정</b> (종이 배경 하얗게·글씨 진하게) 후 PDF로 변환</span></label>
     <div class="dr-note">사진을 <b>왼쪽 편집 화면의 「추가 첨부파일」 칸으로 끌어다 놓거나</b> 「현재 건에 첨부」를 누르세요. 사진은 병합 여부와 관계없이 <b>업로드 3일 뒤 서버에서 자동 삭제</b>됩니다.</div>` +
-    (inbox.length ? `<div class="ph-grid">${inbox.map(p => {
+    (inbox.length ? inboxGroups(p => {
       const d = FieldStore.toDate(p.createdAt), exp = FieldStore.toDate(p.expireAt);
       const left = exp ? Math.max(0, Math.ceil((exp - Date.now()) / 864e5)) : '';
       const used = fieldUsed[p.id];
       return `<div class="ph" draggable="true" data-fid="${esc(p.id)}">
         <img src="data:image/jpeg;base64,${p.thumb}" data-zoom="${esc(p.id)}" alt="">
-        <div class="m"><b>${esc(p.label)}</b> · ${d ? `${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}` : '전송 중'}${left!==''?` · ${left}일 후 삭제`:''}</div>
+        <div class="m">${p.kind==='doc'?'📄 ':p.kind==='sign'?'✍ ':'📷 '}<b>${esc(p.label)}</b> · ${d ? `${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}` : '전송 중'}${left!==''?` · ${left}일 후 삭제`:''}</div>
+        ${caseTag(p)}
         ${used ? `<div class="used" title="${esc(used)}">✓ ${esc(used)}에 ${p.kind==='sign'?'적용':'첨부'}됨</div>` : ''}
         <div class="a"><button class="btn sm teal" data-attach="${esc(p.id)}" ${cur?'':'disabled'} title="${esc(recName)}">${p.kind==='sign'?'현재 건에 적용':'현재 건에 첨부'}</button><button class="btn sm" data-fdel="${esc(p.id)}" title="서버에서 삭제">삭제</button></div>
-      </div>`; }).join('')}</div>` : '<div class="empty">현장에서 올린 사진이 없습니다</div>');
+      </div>`; }) : '<div class="empty">현장에서 올린 사진이 없습니다</div>');
   const u = FieldStore.user();
   f.innerHTML = `<span>${esc(u ? u.email : '')}</span><span style="flex:1"></span><span>서버 보관 ${FieldStore.KEEP_DAYS}일</span>`;
 }
+const FIELD_DOC_NAMES = {'보일러':'보일러 시공·보험가입확인서', '필증':'가스안전공사 필증', '서류':'기타 서류'};
+/* ----- 일일업무현황 (팀즈 공동편집 엑셀) 붙여넣기용 복사 ----- */
+// ERP 주소 「영천시 바깥완산길 104-3 (완산동,홍길동주택) 완산동 171번지」 → 「영천시 바깥완산길 104-3 (완산동 171번지)」
+function dailyAddr(r){
+  const e = edits[r.id] || {};
+  if (e.addr) return String(e.addr).trim();
+  const a = String(r.src.주소 ?? '').trim(), m = a.match(/^(.*?)\s*\([^)]*\)\s*(.+)$/);
+  return m ? `${m[1].trim()} (${m[2].trim()})` : trimAddr(a);
+}
+const DAILY_COLS = ['수요처', '위치(주소)', '시공업체', '연락처', '검사구분', '세대수', '검사자'];
+function dailyRow(r){
+  const v = view(r), s = r.src;
+  return [String(s.계약명 || v.name || '').trim(), dailyAddr(r), String(s.시공업체 || v.coName || '').trim(), String(s.업체전화 || v.coTel || '').trim(), v.type, String(s.세대수 ?? '').trim(), String(v.inspector || '').trim()];
+}
+function dayLabel(d){
+  const m = String(d || '').match(/(\d{4})\D(\d{1,2})\D(\d{1,2})/); if (!m) return String(d || '');
+  const w = '일월화수목금토'[new Date(+m[1], m[2] - 1, +m[3]).getDay()];
+  return `${m[2].padStart(2, '0')}/${m[3].padStart(2, '0')}(${w})`;
+}
+function openDaily(){
+  if (!rows().length) return;
+  const dates = [...new Set(rows().map(r => view(r).date).filter(Boolean))].sort();
+  const now = new Date(), today = `${now.getFullYear()}/${String(now.getMonth()+1).padStart(2,'0')}/${String(now.getDate()).padStart(2,'0')}`;
+  const st = {date: dates.includes(today) ? today : (dates.length === 1 ? dates[0] : ''), onlySel: sel.size > 0 && sel.size < rows().length, withDate: false, fmt: store.get('pssr.daily.fmt', false)};
+  const ov = document.createElement('div'); ov.className = 'dl-ov';
+  ov.innerHTML = `<div class="dl-box"><div class="dl-h"><b>📋 일일업무현황 — 3. 공급 전 안전점검 붙여넣기</b><button class="btn sm ghost" data-dl="close">✕</button></div>
+    <div class="dl-c">
+      <label>검사요청일 <select data-dl="date"><option value="">전체</option>${dates.map(d => `<option value="${esc(d)}">${esc(dayLabel(d))}</option>`).join('')}</select></label>
+      <label><input type="checkbox" data-dl="onlySel"> 체크한 건만</label>
+      <label><input type="checkbox" data-dl="withDate"> 맨 앞에 「일자」 열 포함</label>
+      <label title="끄면 값만 복사되어 엑셀 칸의 기존 서식이 유지됩니다"><input type="checkbox" data-dl="fmt"> 서식 함께 복사 (연두색 배경·테두리)</label>
+    </div>
+    <div class="dl-t"></div>
+    <div class="dl-f"><span>칸을 눌러 복사 전에 바로 고칠 수 있습니다 (빈 칸은 노란색). 팀즈 엑셀에서 <b>「수요처」 열의 첫 빈칸</b>을 클릭하고 <b>Ctrl+V</b>.</span><button class="btn" data-dl="close">닫기</button><button class="btn pri" data-dl="copy">📋 복사</button></div></div>`;
+  document.body.appendChild(ov);
+  const q = k => ov.querySelector(`[data-dl="${k}"]`);
+  q('date').value = st.date; q('onlySel').checked = st.onlySel; q('onlySel').disabled = !sel.size; q('withDate').checked = st.withDate; q('fmt').checked = st.fmt;
+  const pick = () => rows().filter(r => (!st.date || view(r).date === st.date) && (!st.onlySel || sel.has(r.id)))
+    .sort((a, b) => String(view(a).date).localeCompare(String(view(b).date)));
+  const table = () => { const head = st.withDate ? ['일자', ...DAILY_COLS] : DAILY_COLS;
+    return {head, body: pick().map(r => st.withDate ? [dayLabel(view(r).date), ...dailyRow(r)] : dailyRow(r))}; };
+  const draw = () => { const {head, body} = table();
+    ov.querySelector('.dl-t').innerHTML = body.length ? `<table><tr>${head.map(h => `<th>${esc(h)}</th>`).join('')}</tr>${body.map(r => `<tr>${r.map(c => `<td contenteditable="true" spellcheck="false">${esc(c)}</td>`).join('')}</tr>`).join('')}</table>`
+      : '<div class="empty">해당하는 건이 없습니다</div>';
+    q('copy').disabled = !body.length; q('copy').textContent = `📋 ${body.length}건 복사`; };
+  draw();
+  ov.addEventListener('change', e => { const k = e.target.dataset.dl; if (!k) return;
+    st[k] = e.target.type === 'checkbox' ? e.target.checked : e.target.value; if (k === 'fmt') store.set('pssr.daily.fmt', st.fmt); draw(); });
+  ov.addEventListener('click', async e => {
+    if (e.target === ov) return ov.remove();
+    const b = e.target.closest('[data-dl]'); if (!b || b.tagName === 'SELECT' || b.tagName === 'INPUT') return;
+    if (b.dataset.dl === 'close') return ov.remove();
+    if (b.dataset.dl !== 'copy') return;
+    const body = [...ov.querySelectorAll('.dl-t tr')].slice(1).map(tr => [...tr.children].map(td => td.innerText.replace(/\s+/g, ' ').trim()));   // 미리보기에서 고친 값 그대로
+    const tsv = body.map(r => r.map(c => String(c).replace(/[\t\r\n]+/g, ' ')).join('\t')).join('\r\n');
+    const td = 'border:.5pt solid windowtext;background:#E2EFDA;text-align:center;vertical-align:middle;font-family:"맑은 고딕";font-size:9pt;mso-number-format:"\\@"';
+    const html = `<html><head><meta charset="utf-8"></head><body><table style="border-collapse:collapse">${body.map(r => `<tr>${r.map(c => `<td style='${td}'>${esc(c)}</td>`).join('')}</tr>`).join('')}</table></body></html>`;
+    try{
+      if (st.fmt && window.ClipboardItem) await navigator.clipboard.write([new ClipboardItem({'text/plain': new Blob([tsv], {type:'text/plain'}), 'text/html': new Blob([html], {type:'text/html'})})]);
+      else await navigator.clipboard.writeText(tsv);
+    }catch(err){
+      const t = document.createElement('textarea'); t.value = tsv; t.style.cssText = 'position:fixed;left:-9999px'; document.body.appendChild(t); t.select();
+      const ok = document.execCommand('copy'); t.remove(); if (!ok) return alert('복사하지 못했습니다. 브라우저의 클립보드 권한을 확인하세요.');
+    }
+    toast(`${body.length}건을 복사했습니다 — 팀즈 엑셀 「수요처」 첫 빈칸에서 Ctrl+V`);
+  });
+}
+$('#dailyBtn').onclick = openDaily;
+
+/* ----- 현장 목록(암호화)과 건 매칭 ----- */
+let cidMap = {}, cidMapKey = '', cidFailAt = 0;
+async function ensureCidMap(){
+  if (inboxState !== 'on' || !data || !FieldStore.user()) return;
+  const k = data.file + '|' + data.loadedAt + '|' + FieldStore.user().uid;
+  if (k === cidMapKey || Date.now() - cidFailAt < 60000) return;
+  cidMapKey = k; const m = {};
+  try{ for (const r of rows()) m[await FieldStore.caseId(r.id)] = r.id; }catch(e){ cidMapKey = ''; cidFailAt = Date.now(); return; }
+  cidMap = m; if (data) renderList(); renderInbox();
+}
+const caseRecName = id => { const r = rows().find(x => x.id === id); return r ? view(r).name : ''; };
+function caseTag(p){
+  if (!p.cid) return '<div class="cs none">건 미지정</div>';
+  return `<div class="cs">📍 ${esc(cidMap[p.cid] ? caseRecName(cidMap[p.cid]) : '다른 ERP 파일의 건')}</div>`;
+}
+function fieldCount(id){ return inbox.filter(p => p.cid && cidMap[p.cid] === id && !fieldUsed[p.id]).length; }
+function inboxGroups(tile){
+  const mine = cur ? inbox.filter(p => p.cid && cidMap[p.cid] === cur) : [];
+  const rest = inbox.filter(p => !mine.includes(p));
+  if (!mine.length) return `<div class="ph-grid">${rest.map(tile).join('')}</div>`;
+  const left = mine.filter(p => !fieldUsed[p.id]).length;
+  return `<div class="dr-sec"><b>📍 ${esc(caseRecName(cur))} · 현장 자료 ${mine.length}개${left < mine.length ? ` (미첨부 ${left})` : ''}</b><button class="btn sm teal" id="attachAll" ${left ? '' : 'disabled'}>이 건 자료 모두 첨부</button></div>
+    <div class="ph-grid">${mine.map(tile).join('')}</div>` + (rest.length ? `<div class="dr-sec2">다른 자료 ${rest.length}개</div><div class="ph-grid">${rest.map(tile).join('')}</div>` : '');
+}
+async function attachAllForCur(){
+  if (!cur) return;
+  const order = {photo: 0, doc: 1, sign: 2};
+  const list = inbox.filter(p => p.cid && cidMap[p.cid] === cur && !fieldUsed[p.id]).sort((a, b) => (order[a.kind || 'photo'] - order[b.kind || 'photo']) || String(a.label).localeCompare(String(b.label)));
+  for (const p of list) await attachFieldPhoto(p.id);
+  toast(`현장 자료 ${list.length}개를 이 건에 넣었습니다`);
+}
+$('#sendCasesBtn').onclick = async () => {
+  if (!data || !rows().length) return;
+  if (inboxState !== 'on'){ openInbox(); return toast('먼저 오른쪽 현장 사진함에서 직원 계정으로 로그인하세요'); }
+  const recs = selectedRecs().length ? selectedRecs() : rows();
+  try{ await FieldStore.teamKey(); }catch(e){ return alert(FieldStore.errMsg(e)); }
+  if (!confirm(`${recs.length}건의 시설명·주소·구분·검사일만 암호화해 현장 휴대폰 목록으로 보냅니다.\n(전화번호·입금자·금액·업체 정보는 보내지 않으며, 3일 뒤 서버에서 자동 삭제됩니다)\n\n보낼까요?`)) return;
+  const b = $('#sendCasesBtn'); b.disabled = true;
+  try{
+    const n = await FieldStore.sendCases(recs.map(r => { const v = view(r); return {no: r.id, name: v.name, addr: v.addr, kind: v.type, date: v.date}; }));
+    cidMapKey = ''; cidFailAt = 0; await ensureCidMap();
+    toast(`${n}건을 현장 목록으로 보냈습니다 (휴대폰에서 「건 선택」)`);
+  }catch(e){ alert(FieldStore.errMsg(e)); }
+  finally{ b.disabled = false; }
+};
 async function attachFieldPhoto(fid){
   if (!cur) return toast('먼저 왼쪽 목록에서 건을 선택하세요');
   const p = inbox.find(x => x.id === fid); if (!p) return;
   if (p.kind === 'sign') return applySignSet(fid, p);
   if (fieldUsed[fid] && !confirm(`이 사진은 이미 「${fieldUsed[fid]}」에 첨부되어 있습니다. 현재 건에도 첨부할까요?`)) return;
+  const isDoc = p.kind === 'doc';
+  const docName = isDoc ? (FIELD_DOC_NAMES[String(p.label).replace(/^\d\d\/\d\d ?/, '').replace(/ ?#\d+$/, '')] || '기타 서류') : '기밀시험 결과지';
   try{
     toast('사진을 내려받는 중…');
     const photo = b64ToBlob(await FieldStore.getData(fid), 'image/jpeg');
     toast('PDF로 변환하는 중…');
-    const enhance = store.get('pssr.scanfix', true);
-    const blob = await photoToA4Pdf(photo, enhance);
+    const enhance = !isDoc && store.get('pssr.scanfix', true);   // 기타 서류는 휴대폰에서 이미 스캔 보정됨
+    const blob = await photoToA4Pdf(photo, enhance, docName);
     const list = await idb.list(cur);
     const id = (crypto.randomUUID ? crypto.randomUUID() : Date.now() + '-' + Math.random().toString(36).slice(2));
-    await idb.put({id, recId: cur, name:`기밀시험 결과지 (현장 ${p.label}).pdf`, kind:'pdf', size: blob.size, pages:1, order: list.length ? list[list.length-1].order + 1 : 1, blob, fieldId: fid});
+    await idb.put({id, recId: cur, name:`${docName} (현장 ${p.label}).pdf`, kind:'pdf', size: blob.size, pages:1, order: list.length ? list[list.length-1].order + 1 : 1, blob, fieldId: fid});
     fieldUsed[fid] = view(rows().find(r => r.id === cur)).name;
     await refreshAttCount(); renderAtt(); setInboxCount(); renderInbox();
-    toast(`PDF로 변환해 현재 건에 첨부했습니다${enhance ? ' (문서 보정 적용)' : ''}`);
+    toast(`${docName}을(를) PDF로 변환해 현재 건에 첨부했습니다${enhance ? ' (문서 보정 적용)' : ''}`);
   }catch(e){ alert(FieldStore.errMsg(e)); }
 }
 async function releaseFieldPhotos(rec){
@@ -1758,6 +1960,7 @@ $('#drBody').addEventListener('click', async e => {
     if (p && p.kind === 'sign'){ const d = JSON.parse(raw); lb.innerHTML = `<div style="background:#fff;border-radius:10px;padding:18px;display:grid;grid-template-columns:1fr 1fr;gap:14px;max-width:760px">${SIGN_ROLES.map(([r,l]) => `<div style="border:1px solid #dde3ea;border-radius:8px;padding:8px;text-align:center"><div style="font-size:12px;color:#7b8798;margin-bottom:6px">${esc(l)}</div>${d.sigs[r] ? `<img src="${d.sigs[r]}" style="max-height:110px;max-width:100%;box-shadow:none">` : '<span style="color:#aab">없음</span>'}</div>`).join('')}<div style="grid-column:1/-1;font-size:13px;color:#4a5667">개인정보 ${esc(d.flags && d.flags.consent)} · LPG 안전조치 ${esc(d.flags && d.flags.lpg)}</div></div>`; }
     else lb.innerHTML = `<img src="data:image/jpeg;base64,${raw}">`;
     lb.onclick = () => lb.remove(); document.body.appendChild(lb); }catch(err){ alert(FieldStore.errMsg(err)); } return; }
+  if (t.id === 'attachAll'){ t.disabled = true; return attachAllForCur(); }
   const a = t.closest('[data-attach]'); if (a) return attachFieldPhoto(a.dataset.attach);
   const d = t.closest('[data-fdel]');
   if (d && confirm('이 사진을 서버에서 삭제할까요? (이미 첨부한 건의 사진은 PC에 남습니다)')){ try{ await FieldStore.remove(d.dataset.fdel); toast('삭제했습니다'); }catch(err){ alert(FieldStore.errMsg(err)); } }
