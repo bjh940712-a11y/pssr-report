@@ -8,3 +8,6 @@ window.FIREBASE_CONFIG = {
   messagingSenderId: "551281297991",
   appId: "1:551281297991:web:04159ec6aa1231475bbf62"
 };
+
+// 아침 알림(웹 푸시) 키 — Firebase 콘솔 → 프로젝트 설정 → 클라우드 메시징 → 웹 푸시 인증서 → 「키 쌍」 값을 따옴표 안에 붙여넣기
+window.FIREBASE_VAPID_KEY = "BMsMbS1NsWmTLpZqbxUAUfthl0jHtl7HIwt2b3xnTc-s9twduEACVibAULL9hBeCA5S7mGA7jvd3p28rWfwBjYM";

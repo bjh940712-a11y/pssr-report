@@ -1,8 +1,8 @@
 rules_version = '2';
 // 공급전 안전점검 · 현장 사진함
-// - 저장 대상: 기밀시험 결과지 사진, 기타 서류 스캔(보일러 확인서·필증 등), 서명 그림 — 업로드 3일 뒤 삭제
+// - 저장 대상: 기밀시험 결과지 사진, 기타 서류 스캔(보일러 확인서·필증 등), 서명 그림 — 업로드 7일 뒤 삭제
 // - 주소·이름·계약번호 등 글자 식별정보 필드는 저장 불가
-// - 현장 목록(fieldCases): 앱이 시설명·주소·구분·검사일을 AES-GCM으로 암호화한 묶음 (암호문·건수 필드만 허용), 3일 보관
+// - 현장 목록(fieldCases): 앱이 시설명·주소·구분·검사일을 AES-GCM으로 암호화한 묶음 (암호문·건수 필드만 허용), 7일 보관
 // - 건 번호(cid): 계약번호를 열쇠로 HMAC 한 16자리 값 (서버에서 계약 식별 불가)
 // - 접근: Authentication 로그인 + members/{uid} 문서가 있는 직원만
 service cloud.firestore {
@@ -85,7 +85,22 @@ service cloud.firestore {
     match /fieldPhotos/{id} {
       allow read, delete: if canSee();
       allow create: if isMember() && validMeta(request.resource.data);
-      allow update: if false;
+      // PC에서 첨부·적용했을 때 「보고됨(done)」 표시만 허용
+      allow update: if canSee()
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['done'])
+        && request.resource.data.done == true;
+    }
+
+    // 아침 알림용 기기 등록: 본인 것만 쓰고 지움 (읽기는 서버 알림 프로그램만)
+    match /pushTokens/{id} {
+      allow create, update: if isMember()
+        && request.resource.data.keys().hasOnly(['uid', 'token', 'ua', 'createdAt'])
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.token is string && request.resource.data.token.size() < 400
+        && request.resource.data.ua is string && request.resource.data.ua.size() <= 200
+        && request.resource.data.createdAt == request.time;
+      allow delete: if signedIn() && resource.data.uid == request.auth.uid;
+      allow read: if false;
     }
 
     match /fieldPhotoData/{id} {

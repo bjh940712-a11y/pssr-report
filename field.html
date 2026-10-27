@@ -53,6 +53,13 @@ main{padding:16px;max-width:560px;margin:0 auto}
 .rv-opt button:first-child{border-radius:8px 0 0 8px} .rv-opt button:last-child{border-radius:0 8px 8px 0;border-left:0}
 .rv-opt button.on{background:var(--teal);border-color:var(--teal);color:#fff}
 .rv-tag{display:inline-block;background:var(--teal-soft);color:#0b5f61;border-radius:6px;padding:1px 8px;font-size:12px;font-weight:700;margin-bottom:6px}
+/* 미보고 경고·알림 */
+.duebar{display:flex;align-items:center;gap:10px;background:var(--bad-soft);border:1px solid #efc3c3;color:#8a2424;border-radius:12px;padding:10px 12px;margin-bottom:12px;font-size:14px;line-height:1.45}
+.duebar b{color:#7a1d1d}
+.pushbar{display:flex;align-items:center;gap:10px;background:#fff;border:1px dashed #b9c6d6;border-radius:12px;padding:10px 12px;margin-bottom:12px;font-size:13.5px;color:var(--ink-2)}
+.pushbar span{flex:1}
+.pushbar button{border:0;border-radius:9px;background:var(--teal);color:#fff;font-weight:700;padding:9px 12px;font-size:14px;white-space:nowrap}
+.it .dn{font-size:12px;color:var(--ok);font-weight:700}
 /* 점검 중인 건 */
 .casebar{display:flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:12px}
 .casebar.warn{border-color:#f2b233;background:var(--warn-soft)}
@@ -169,10 +176,12 @@ input[type=email],input[type=password]{width:100%;border:1px solid #c9d2dd;borde
   </div>
   <!-- 촬영 -->
   <div id="vMain" class="hidden">
+    <div class="duebar hidden" id="dueBar"></div>
+    <div class="pushbar hidden" id="pushBar"><span>🔔 <b>아침 9시 알림</b> — 보고하지 않은 자료가 지워지기 전날 알려 드립니다</span><button id="pushOn">알림 받기</button></div>
     <div class="casebar" id="caseBar"><div class="ci">📍</div><div class="ct"><small>점검 중인 건 (촬영·서명이 이 건으로 분류됩니다)</small><b id="caseName">건 선택 안 함</b><span id="caseAddr"></span></div><button id="casePick">건 선택</button></div>
     <div class="mtabs"><button data-mode="photo" class="on">📷 결과지</button><button data-mode="doc">📄 기타 서류</button><button data-mode="sign">✍️ 서명</button></div>
     <div id="mPhoto">
-    <div class="note">📌 <b>기밀시험 결과지만</b> 촬영하세요.<br>이름·주소 등은 입력하지 않습니다. 사진은 사무실 PC에서 해당 건에 연결되며, 서버에서는 <b id="keepDays">3</b>일 뒤 자동 삭제됩니다.</div>
+    <div class="note">📌 <b>기밀시험 결과지만</b> 촬영하세요.<br>이름·주소 등은 입력하지 않습니다. 사진은 사무실 PC에서 해당 건에 연결되며, 서버에서는 <b data-keep>7</b>일 뒤 자동 삭제됩니다.</div>
     <div id="review" class="hidden"></div>
     <div id="shootBox">
     <label class="shoot"><span class="ic">📷</span>결과지 촬영
@@ -181,7 +190,7 @@ input[type=email],input[type=password]{width:100%;border:1px solid #c9d2dd;borde
     </div>
     </div>
     <div id="mDoc" class="hidden">
-      <div class="note">📄 보일러 시공·보험가입확인서, 가스안전공사 필증 등을 <b>스캔본처럼</b> 촬영합니다. 찍으면 서류 테두리를 자동으로 찾아 반듯하게 펴고 하얗게 보정합니다. 서버에서는 <b>3</b>일 뒤 자동 삭제됩니다.</div>
+      <div class="note">📄 보일러 시공·보험가입확인서, 가스안전공사 필증 등을 <b>스캔본처럼</b> 촬영합니다. 찍으면 서류 테두리를 자동으로 찾아 반듯하게 펴고 하얗게 보정합니다. 서버에서는 <b data-keep>7</b>일 뒤 자동 삭제됩니다.</div>
       <div class="dtype" id="dtype"><button data-dt="보일러" class="on">보일러 시공·<br>보험확인서</button><button data-dt="필증">가스안전공사<br>필증</button><button data-dt="서류">기타<br>서류</button></div>
       <div id="docReview" class="hidden"></div>
       <div id="docShoot">
@@ -192,7 +201,7 @@ input[type=email],input[type=password]{width:100%;border:1px solid #c9d2dd;borde
       </div>
     </div>
     <div id="mSign" class="hidden">
-      <div class="note">✍️ <b>서명만</b> 받습니다. 이름·주소는 입력하지 않으며, 사무실 PC에서 해당 건의 「안전교육 및 개인정보 동의서」에 들어갑니다. 서버에서는 3일 뒤 자동 삭제됩니다.</div>
+      <div class="note">✍️ <b>서명만</b> 받습니다. 이름·주소는 입력하지 않으며, 사무실 PC에서 해당 건의 「안전교육 및 개인정보 동의서」에 들어갑니다. 서버에서는 <b data-keep>7</b>일 뒤 자동 삭제됩니다.</div>
       <div id="signForm">
         <div class="card sgq">
           <div><b>개인정보 수집·이용</b><div class="seg2" data-flag="consent"><button class="on">동의</button><button>미동의</button></div></div>
@@ -210,7 +219,7 @@ input[type=email],input[type=password]{width:100%;border:1px solid #c9d2dd;borde
 </main>
 <div class="toast" id="toast"></div>
 <script>
-/* ===== 현장 사진함 (Firebase) — 기밀시험 결과지·기타 서류 사진, 서명 그림 (3일 보관, 글자 식별정보 필드 없음) =====
+/* ===== 현장 사진함 (Firebase) — 기밀시험 결과지·기타 서류 사진, 서명 그림 (7일 보관, 글자 식별정보 필드 없음) =====
    fieldPhotos/{id}    : thumb(작은 미리보기), w, h, label("10/23 #3"), by(업로더 uid), createdAt, expireAt
    fieldPhotoData/{id} : data(원본 JPEG base64), by, createdAt, expireAt
    주소·이름·계약번호 등 어떤 식별정보도 저장하지 않습니다. */
@@ -219,7 +228,7 @@ const FieldStore = (() => {
   const META = 'fieldPhotos', DATA = 'fieldPhotoData', CASES = 'fieldCases', KEYS = 'teamKeys';
   const bytesToB64 = u => { let s = ''; for (let i = 0; i < u.length; i += 0x8000) s += String.fromCharCode.apply(null, u.subarray(i, i + 0x8000)); return btoa(s); };
   const b64ToBytes = b => { const s = atob(b), u = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) u[i] = s.charCodeAt(i); return u; };
-  const KEEP_DAYS = 3;
+  const KEEP_DAYS = 7;
   const CFG_KEY = 'pssr.fbconfig';
   let fb = null, auth = null, db = null, initP = null;
 
@@ -363,6 +372,32 @@ const FieldStore = (() => {
       const d = await db.collection(DATA).doc(id).get();
       if (!d.exists) throw new Error('사진 원본이 서버에 없습니다 (이미 삭제되었거나 만료됨).');
       return d.data().data;
+    },
+    // PC에서 첨부·적용하면 「보고됨」 표시 (알림 대상에서 빠짐)
+    async markDone(id){ try{ await db.collection(META).doc(id).update({done: true}); return true; }catch(e){ return false; } },
+    /* --- 아침 알림 (FCM 웹 푸시) ---
+       pushTokens/{토큰 해시} : uid, createdAt, ua  →  매일 09:00 GitHub Actions가 「보고하셨나요?」 알림 발송 */
+    pushSupported(){ return 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window; },
+    pushState(){ if (!this.pushSupported()) return 'unsupported'; return Notification.permission; },   // default | granted | denied
+    async enablePush(ask){
+      if (!this.pushSupported()) throw new Error('이 휴대폰(브라우저)은 알림을 지원하지 않습니다. 아이폰은 홈 화면에 설치한 앱에서만 됩니다 (iOS 16.4 이상).');
+      const vapidKey = window.FIREBASE_VAPID_KEY;
+      if (!vapidKey) throw new Error('알림 설정(웹 푸시 키)이 아직 없습니다. 관리자에게 문의하세요.');
+      if (Notification.permission !== 'granted'){
+        if (!ask) return false;
+        const r = await Notification.requestPermission();
+        if (r !== 'granted') throw new Error('알림이 허용되지 않았습니다. 휴대폰 설정에서 이 앱의 알림을 켜 주세요.');
+      }
+      if (!fb.messaging) await load(SDK + 'firebase-messaging-compat.js');
+      const reg = await navigator.serviceWorker.register('firebase-messaging-sw.js', {scope: './fcm/'});
+      const token = await fb.messaging().getToken({vapidKey, serviceWorkerRegistration: reg});
+      if (!token) throw new Error('알림 등록에 실패했습니다.');
+      const id = [...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(token)))].map(b => b.toString(16).padStart(2, '0')).join('');
+      const b = db.batch();
+      b.set(db.collection('pushTokens').doc(id), {uid: auth.currentUser.uid, token, ua: navigator.userAgent.slice(0, 200), createdAt: fb.firestore.FieldValue.serverTimestamp()});
+      await b.commit();
+      try{ fb.messaging().onMessage(m => { const d = (m && m.data) || {}; try{ toast((d.title ? d.title + ' — ' : '') + (d.body || '')); }catch(e){} }); }catch(e){}
+      return true;
     },
     async remove(id){
       const b = db.batch();
@@ -806,14 +841,39 @@ function render(){
         <div class="st ${p.err?'err':''}">${p.err ? '⚠ ' + esc(p.err) : '<span class="spin"></span>올리는 중…'}</div></div>
         ${p.err ? `<button data-retry="${p.tmp}">다시 시도</button>` : '<span></span>'}</div>`
     : `<div class="it"><img src="data:image/jpeg;base64,${p.thumb}" alt=""><div style="min-width:0"><div class="lb">${esc(p.label)}</div>${caseLine(p.cid)}
-        <div class="st ok">✓ 전송 완료 · ${hm(FieldStore.toDate(p.createdAt))}</div></div>
+        <div class="st ok">✓ 전송 완료 · ${hm(FieldStore.toDate(p.createdAt))}</div>${p.done ? '<div class="dn">✓ 사무실 보고 첨부됨</div>' : ''}</div>
         <button data-del="${esc(p.id)}">삭제</button></div>`).join('')
     : '<div class="empty">아직 올린 사진이 없습니다</div>';
 }
+let allMine = [];
+// 보고(PC 첨부) 전인데 2일 안에 지워질 자료 경고
+function renderDue(){
+  const now = Date.now(), soon = allMine.filter(p => !p.done && FieldStore.toDate(p.expireAt) && FieldStore.toDate(p.expireAt) - now < 2 * 864e5)
+    .sort((a, b) => FieldStore.toDate(a.expireAt) - FieldStore.toDate(b.expireAt));
+  const box = $('#dueBar'); box.classList.toggle('hidden', !soon.length); if (!soon.length) return;
+  const e = FieldStore.toDate(soon[0].expireAt);
+  box.innerHTML = `⚠️ <span>보고하지 않은 자료 <b>${soon.length}건</b>이 곧 삭제됩니다 (가장 빠른 삭제 <b>${e.getMonth()+1}/${e.getDate()} ${p2(e.getHours())}:${p2(e.getMinutes())}</b>). 사무실 PC에서 첨부해 주세요.</span>`;
+}
+function renderPush(){
+  const st = FieldStore.pushState();
+  $('#pushBar').classList.toggle('hidden', !(st === 'default' || st === 'denied' || (st === 'unsupported' && isIOS() && !isStandalone())));
+  if (st === 'denied') $('#pushOn').textContent = '설정 방법';
+  if (st === 'unsupported') $('#pushOn').textContent = '설치 방법';
+}
+$('#pushOn').onclick = async () => {
+  const st = FieldStore.pushState();
+  if (st === 'unsupported') return alert('아이폰은 Safari 공유 버튼(□↑) → 「홈 화면에 추가」로 앱을 설치한 뒤, 설치한 앱에서 알림을 켤 수 있습니다 (iOS 16.4 이상).');
+  if (st === 'denied') return alert('알림이 차단되어 있습니다.\n휴대폰 설정 → 앱(또는 Chrome) → 알림에서 이 앱의 알림을 허용한 뒤 다시 눌러 주세요.');
+  try{ $('#pushOn').disabled = true; await FieldStore.enablePush(true); toast('🔔 아침 9시 알림을 켰습니다'); }
+  catch(e){ alert(FieldStore.errMsg(e)); }
+  finally{ $('#pushOn').disabled = false; renderPush(); }
+};
 async function refresh(){
   try{
     const today = dayKey(new Date());
-    server = (await FieldStore.listMine()).filter(p => { const d = FieldStore.toDate(p.createdAt); return !d || dayKey(d) === today; });
+    allMine = await FieldStore.listMine();
+    server = allMine.filter(p => { const d = FieldStore.toDate(p.createdAt); return !d || dayKey(d) === today; });
+    renderDue();
   }catch(e){ toast(FieldStore.errMsg(e)); }
   render();
 }
@@ -1055,7 +1115,7 @@ $('#signReview').addEventListener('click', e => {
 window.addEventListener('beforeunload', e => { if (review.length || docRev.length || signData || pending.some(p => !p.err) || Object.values(pads).some(p => !p.empty)) { e.preventDefault(); e.returnValue = ''; } });
 
 (async () => {
-  $('#keepDays').textContent = FieldStore.KEEP_DAYS;
+  document.querySelectorAll('[data-keep]').forEach(b => b.textContent = FieldStore.KEEP_DAYS);
   setupAppInstall();
   if (!FieldStore.isConfigured()) return show('vCfg');
   let answered = false;
@@ -1067,6 +1127,7 @@ window.addEventListener('beforeunload', e => { if (review.length || docRev.lengt
     if (!u) return show('vLogin');
     if (!(await FieldStore.checkMember())){ show('vLogin'); $('#inErr').textContent = '등록되지 않은 사용자입니다. 관리자에게 사용자 등록을 요청하세요.'; FieldStore.signOut(); return; }
     show('vMain'); FieldStore.purgeExpired().then(n => { if (n) refresh(); }).catch(() => {}); refresh(); renderCase(); loadCases();
+    renderPush(); if (FieldStore.pushState() === 'granted') FieldStore.enablePush(false).catch(() => {});   // 알림 토큰 갱신
     const tb = $('#demoTag'); if (tb) tb.classList.toggle('hidden', !FieldStore.isAdmin());
     setMode(hashMode() || curMode);
   });

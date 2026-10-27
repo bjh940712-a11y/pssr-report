@@ -197,7 +197,7 @@ label.f{display:block;font-size:12px;font-weight:600;color:var(--ink-2);margin-b
 .frm .sv.r{width:96pt}
 .frm .sm{width:72pt;text-align:left}
 .frm .si{position:relative;width:34pt;text-align:center}
-.frm .si img{position:absolute;left:50%;top:50%;transform:translate(-50%,-58%);height:30pt;max-width:86pt;object-fit:contain}
+.frm .si img{position:absolute;left:50%;top:50%;transform:translate(-50%,-58%);height:21pt;max-width:60pt;object-fit:contain}
 .frm .f0{font-size:16.0pt;font-weight:700;justify-content:center;align-items:center;white-space:pre-wrap;text-align:center}
 .frm .f1{font-size:10.0pt;font-weight:700;justify-content:flex-start;align-items:center}
 .frm .f2{font-size:10.0pt;justify-content:center;align-items:center}
@@ -393,7 +393,7 @@ body.inbox-on #p-rep{padding-right:420px}
         <button class="btn pri" id="printBtn">🖨 인쇄</button>
         <span style="width:1px;height:26px;background:var(--line-2);margin:0 2px"></span>
         <button class="btn" id="dailyBtn" title="팀즈 「일일업무현황」의 3. 공급 전 안전점검 표에 그대로 붙여넣을 수 있게 복사합니다">📋 일일업무현황</button>
-        <button class="btn" id="sendCasesBtn" title="선택한 건(선택이 없으면 전체)의 시설명·주소·구분·검사일만 암호화해 현장 휴대폰 목록으로 보냅니다 (3일 후 자동 삭제)">📤 현장 목록 보내기</button>
+        <button class="btn" id="sendCasesBtn" title="선택한 건(선택이 없으면 전체)의 시설명·주소·구분·검사일만 암호화해 현장 휴대폰 목록으로 보냅니다 (7일 후 자동 삭제)">📤 현장 목록 보내기</button>
         <button class="btn inbox-btn" id="inboxBtn" title="현장에서 촬영한 기밀시험 결과지·기타 서류·서명">📷 현장 사진함<span class="cnt hidden" id="inboxCnt">0</span></button>
         <button class="folder" id="dirBtn" title="병합 PDF를 저장할 폴더를 지정합니다">📁 저장 폴더: <b id="dirName">미지정</b></button>
         <button class="btn pri" id="mergeBtn" title="보고서 + 첨부파일을 한 PDF로 합쳐 저장 폴더에 저장합니다">📎 첨부 병합 PDF 저장</button>
@@ -474,7 +474,7 @@ body.inbox-on #p-rep{padding-right:420px}
 <div class="toast" id="toast"></div>
 
 <script>
-/* ===== 현장 사진함 (Firebase) — 기밀시험 결과지·기타 서류 사진, 서명 그림 (3일 보관, 글자 식별정보 필드 없음) =====
+/* ===== 현장 사진함 (Firebase) — 기밀시험 결과지·기타 서류 사진, 서명 그림 (7일 보관, 글자 식별정보 필드 없음) =====
    fieldPhotos/{id}    : thumb(작은 미리보기), w, h, label("10/23 #3"), by(업로더 uid), createdAt, expireAt
    fieldPhotoData/{id} : data(원본 JPEG base64), by, createdAt, expireAt
    주소·이름·계약번호 등 어떤 식별정보도 저장하지 않습니다. */
@@ -483,7 +483,7 @@ const FieldStore = (() => {
   const META = 'fieldPhotos', DATA = 'fieldPhotoData', CASES = 'fieldCases', KEYS = 'teamKeys';
   const bytesToB64 = u => { let s = ''; for (let i = 0; i < u.length; i += 0x8000) s += String.fromCharCode.apply(null, u.subarray(i, i + 0x8000)); return btoa(s); };
   const b64ToBytes = b => { const s = atob(b), u = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) u[i] = s.charCodeAt(i); return u; };
-  const KEEP_DAYS = 3;
+  const KEEP_DAYS = 7;
   const CFG_KEY = 'pssr.fbconfig';
   let fb = null, auth = null, db = null, initP = null;
 
@@ -627,6 +627,32 @@ const FieldStore = (() => {
       const d = await db.collection(DATA).doc(id).get();
       if (!d.exists) throw new Error('사진 원본이 서버에 없습니다 (이미 삭제되었거나 만료됨).');
       return d.data().data;
+    },
+    // PC에서 첨부·적용하면 「보고됨」 표시 (알림 대상에서 빠짐)
+    async markDone(id){ try{ await db.collection(META).doc(id).update({done: true}); return true; }catch(e){ return false; } },
+    /* --- 아침 알림 (FCM 웹 푸시) ---
+       pushTokens/{토큰 해시} : uid, createdAt, ua  →  매일 09:00 GitHub Actions가 「보고하셨나요?」 알림 발송 */
+    pushSupported(){ return 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window; },
+    pushState(){ if (!this.pushSupported()) return 'unsupported'; return Notification.permission; },   // default | granted | denied
+    async enablePush(ask){
+      if (!this.pushSupported()) throw new Error('이 휴대폰(브라우저)은 알림을 지원하지 않습니다. 아이폰은 홈 화면에 설치한 앱에서만 됩니다 (iOS 16.4 이상).');
+      const vapidKey = window.FIREBASE_VAPID_KEY;
+      if (!vapidKey) throw new Error('알림 설정(웹 푸시 키)이 아직 없습니다. 관리자에게 문의하세요.');
+      if (Notification.permission !== 'granted'){
+        if (!ask) return false;
+        const r = await Notification.requestPermission();
+        if (r !== 'granted') throw new Error('알림이 허용되지 않았습니다. 휴대폰 설정에서 이 앱의 알림을 켜 주세요.');
+      }
+      if (!fb.messaging) await load(SDK + 'firebase-messaging-compat.js');
+      const reg = await navigator.serviceWorker.register('firebase-messaging-sw.js', {scope: './fcm/'});
+      const token = await fb.messaging().getToken({vapidKey, serviceWorkerRegistration: reg});
+      if (!token) throw new Error('알림 등록에 실패했습니다.');
+      const id = [...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(token)))].map(b => b.toString(16).padStart(2, '0')).join('');
+      const b = db.batch();
+      b.set(db.collection('pushTokens').doc(id), {uid: auth.currentUser.uid, token, ua: navigator.userAgent.slice(0, 200), createdAt: fb.firestore.FieldValue.serverTimestamp()});
+      await b.commit();
+      try{ fb.messaging().onMessage(m => { const d = (m && m.data) || {}; try{ toast((d.title ? d.title + ' — ' : '') + (d.body || '')); }catch(e){} }); }catch(e){}
+      return true;
     },
     async remove(id){
       const b = db.batch();
@@ -839,6 +865,8 @@ function findCompany(key){
 
 /* ================= derived view of a record ================= */
 function trimAddr(a){ a = String(a ?? ''); const i = a.indexOf('('); return (i > 0 ? a.slice(0, i) : a).trim(); }
+// 「김진유 (자격종류 : 가스시설시공관리자 )」 → 「김진유」
+function mgrName(m){ return String(m || '').replace(/\s*\(.*$/, '').trim(); }
 function baseView(rec){
   const s = rec.src, co = findCompany(s.시공업체);
   const v = {
@@ -857,7 +885,7 @@ function baseView(rec){
   v._coFound = !!co;
   Object.assign(v, {cf_on:'0', cf_date: v.date, cf_c1:'1', cf_c2:'1', cf_c3:'1', cf_c4:'1', cf_lpg:'해당없음', cf_consent:'동의',
     cf_sup_name:'서라벌도시가스㈜', cf_sup_rep: String(s.검사자 || ''), cf_user_name: v.name, cf_user_rep: String(s.입금자 || ''),
-    cf_con_name: v.coName, cf_con_rep: v.coCeo, cf_lpg_name:'', cf_lpg_rep:''});
+    cf_con_name: v.coName, cf_con_rep: mgrName(v.coMgr) || v.coCeo, cf_lpg_name:'', cf_lpg_rep:''});
   return v;
 }
 function view(rec){
@@ -1733,7 +1761,7 @@ async function loadFieldUsed(){
   fieldUsed = m;
 }
 function setInboxCount(){
-  const n = inbox.filter(p => !fieldUsed[p.id]).length, c = $('#inboxCnt');
+  const n = inbox.filter(p => !fieldUsed[p.id] && !p.done).length, c = $('#inboxCnt');
   c.textContent = n; c.classList.toggle('hidden', !n);
 }
 async function inboxBoot(){
@@ -1790,7 +1818,7 @@ function renderInbox(){
   const recName = cur ? view(rows().find(r => r.id === cur) || {src:{}}).name : '';
   b.innerHTML = (FieldStore.isAdmin() ? `<div class="dr-note" style="margin-bottom:10px">👑 <b>마스터 계정</b> — 모든 직원이 올린 사진·서류·서명이 보입니다.</div>` : `<div class="dr-note" style="margin-bottom:10px">👤 내 계정으로 올린 사진·서류·서명만 보입니다.</div>`) + `<a class="btn teal" href="field.html?v=3" target="_blank" style="width:100%;justify-content:center;margin-bottom:10px;text-decoration:none">📷 현장 촬영 화면 열기 (새 탭)</a>
     <label style="display:flex;gap:6px;align-items:center;font-size:13px;margin:0 0 10px;color:var(--ink-2)"><input type="checkbox" id="scanFix" ${store.get('pssr.scanfix', true)?'checked':''}> <span>결과지 첨부할 때 <b>문서 보정</b> (종이 배경 하얗게·글씨 진하게) 후 PDF로 변환</span></label>
-    <div class="dr-note">사진을 <b>왼쪽 편집 화면의 「추가 첨부파일」 칸으로 끌어다 놓거나</b> 「현재 건에 첨부」를 누르세요. 사진은 병합 여부와 관계없이 <b>업로드 3일 뒤 서버에서 자동 삭제</b>됩니다.</div>` +
+    <div class="dr-note">사진을 <b>왼쪽 편집 화면의 「추가 첨부파일」 칸으로 끌어다 놓거나</b> 「현재 건에 첨부」를 누르세요. 사진은 병합 여부와 관계없이 <b>업로드 ${FieldStore.KEEP_DAYS}일 뒤 서버에서 자동 삭제</b>됩니다.</div>${dueNote()}` +
     (inbox.length ? inboxGroups(p => {
       const d = FieldStore.toDate(p.createdAt), exp = FieldStore.toDate(p.expireAt);
       const left = exp ? Math.max(0, Math.ceil((exp - Date.now()) / 864e5)) : '';
@@ -1799,6 +1827,7 @@ function renderInbox(){
         <img src="data:image/jpeg;base64,${p.thumb}" data-zoom="${esc(p.id)}" alt="">
         <div class="m">${p.kind==='doc'?'📄 ':p.kind==='sign'?'✍ ':'📷 '}<b>${esc(p.label)}</b> · ${d ? `${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}` : '전송 중'}${left!==''?` · ${left}일 후 삭제`:''}</div>
         ${caseTag(p)}
+        ${!used && p.done ? '<div class="used">✓ 보고 첨부됨</div>' : ''}
         ${used ? `<div class="used" title="${esc(used)}">✓ ${esc(used)}에 ${p.kind==='sign'?'적용':'첨부'}됨</div>` : ''}
         <div class="a"><button class="btn sm teal" data-attach="${esc(p.id)}" ${cur?'':'disabled'} title="${esc(recName)}">${p.kind==='sign'?'현재 건에 적용':'현재 건에 첨부'}</button><button class="btn sm" data-fdel="${esc(p.id)}" title="서버에서 삭제">삭제</button></div>
       </div>`; }) : '<div class="empty">현장에서 올린 사진이 없습니다</div>');
@@ -1889,7 +1918,15 @@ function caseTag(p){
   if (!p.cid) return '<div class="cs none">건 미지정</div>';
   return `<div class="cs">📍 ${esc(cidMap[p.cid] ? caseRecName(cidMap[p.cid]) : '다른 ERP 파일의 건')}</div>`;
 }
-function fieldCount(id){ return inbox.filter(p => p.cid && cidMap[p.cid] === id && !fieldUsed[p.id]).length; }
+function fieldCount(id){ return inbox.filter(p => p.cid && cidMap[p.cid] === id && !fieldUsed[p.id] && !p.done).length; }
+// 보고(첨부) 전인데 2일 안에 지워질 자료
+function dueNote(){
+  const now = Date.now(), soon = inbox.filter(p => !p.done && !fieldUsed[p.id] && FieldStore.toDate(p.expireAt) && FieldStore.toDate(p.expireAt) - now < 2 * 864e5)
+    .sort((a, b) => FieldStore.toDate(a.expireAt) - FieldStore.toDate(b.expireAt));
+  if (!soon.length) return '';
+  const e = FieldStore.toDate(soon[0].expireAt), hhmm = `${String(e.getHours()).padStart(2,'0')}:${String(e.getMinutes()).padStart(2,'0')}`;
+  return `<div class="co-warn" style="margin-top:10px">⚠️ 보고 전 자료 <b>${soon.length}건</b>이 곧 삭제됩니다 (가장 빠른 삭제 <b>${e.getMonth()+1}/${e.getDate()} ${hhmm}</b>)</div>`;
+}
 function inboxGroups(tile){
   const mine = cur ? inbox.filter(p => p.cid && cidMap[p.cid] === cur) : [];
   const rest = inbox.filter(p => !mine.includes(p));
@@ -1910,7 +1947,7 @@ $('#sendCasesBtn').onclick = async () => {
   if (inboxState !== 'on'){ openInbox(); return toast('먼저 오른쪽 현장 사진함에서 직원 계정으로 로그인하세요'); }
   const recs = selectedRecs().length ? selectedRecs() : rows();
   try{ await FieldStore.teamKey(); }catch(e){ return alert(FieldStore.errMsg(e)); }
-  if (!confirm(`${recs.length}건의 시설명·주소·구분·검사일만 암호화해 현장 휴대폰 목록으로 보냅니다.\n(전화번호·입금자·금액·업체 정보는 보내지 않으며, 3일 뒤 서버에서 자동 삭제됩니다)\n\n보낼까요?`)) return;
+  if (!confirm(`${recs.length}건의 시설명·주소·구분·검사일만 암호화해 현장 휴대폰 목록으로 보냅니다.\n(전화번호·입금자·금액·업체 정보는 보내지 않으며, ${FieldStore.KEEP_DAYS}일 뒤 서버에서 자동 삭제됩니다)\n\n보낼까요?`)) return;
   const b = $('#sendCasesBtn'); b.disabled = true;
   try{
     const n = await FieldStore.sendCases(recs.map(r => { const v = view(r); return {no: r.id, name: v.name, addr: v.addr, kind: v.type, date: v.date}; }));
@@ -1935,7 +1972,7 @@ async function attachFieldPhoto(fid){
     const list = await idb.list(cur);
     const id = (crypto.randomUUID ? crypto.randomUUID() : Date.now() + '-' + Math.random().toString(36).slice(2));
     await idb.put({id, recId: cur, name:`${docName} (현장 ${p.label}).pdf`, kind:'pdf', size: blob.size, pages:1, order: list.length ? list[list.length-1].order + 1 : 1, blob, fieldId: fid});
-    fieldUsed[fid] = view(rows().find(r => r.id === cur)).name;
+    fieldUsed[fid] = view(rows().find(r => r.id === cur)).name; FieldStore.markDone(fid);
     await refreshAttCount(); renderAtt(); setInboxCount(); renderInbox();
     toast(`${docName}을(를) PDF로 변환해 현재 건에 첨부했습니다${enhance ? ' (문서 보정 적용)' : ''}`);
   }catch(e){ alert(FieldStore.errMsg(e)); }
@@ -2072,7 +2109,7 @@ async function applySignSet(fid, p){
     await setSigs(recId, sigs);
     setEdit(recId, 'cf_on', '1');
     if (d.flags){ if (d.flags.consent) setEdit(recId, 'cf_consent', d.flags.consent); if (d.flags.lpg) setEdit(recId, 'cf_lpg', d.flags.lpg); }
-    fieldUsed[fid] = view(rows().find(r => r.id === recId)).name;
+    fieldUsed[fid] = view(rows().find(r => r.id === recId)).name; FieldStore.markDone(fid);
     pvMode = 'consent'; renderEditor(); renderList(); setInboxCount(); renderInbox();
     toast('현장 서명을 동의서에 적용했습니다');
   }catch(e){ alert(FieldStore.errMsg(e)); }
