@@ -267,13 +267,38 @@ label.f{display:block;font-size:12px;font-weight:600;color:var(--ink-2);margin-b
 .att .ops button{border:0;background:none;width:26px;height:26px;border-radius:5px;color:var(--ink-2)}
 .att .ops button:hover{background:#eef2f6}
 .att .ops button:disabled{opacity:.3}
-.att.piece{border-left:3px solid var(--teal)}
-.mp-g{flex:1;overflow:auto;background:#525659;padding:18px;display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:18px;align-content:start}
-.mp-g.big{grid-template-columns:minmax(0,860px);justify-content:center}
-.mp-p{display:flex;flex-direction:column;align-items:center;gap:6px}
-.mp-c{width:100%;min-height:200px;display:grid;place-items:center;color:#dde}
-.mp-c canvas{width:100%;height:auto;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.4)}
-.mp-n{color:#eef;font-size:12px}
+.mg{display:grid;grid-template-columns:minmax(0,1fr) 168px;gap:12px;align-items:start}
+.mg-main{display:flex;flex-direction:column;gap:8px;min-width:0}
+.mg-lab{font-size:12px;font-weight:700;color:var(--ink-2)} .mg-lab span{font-weight:400;color:var(--ink-3)}
+.mg-view{position:relative;background:#525659;border-radius:8px;padding:14px 48px;display:flex;justify-content:center;min-height:300px}
+.mg-page{display:grid;place-items:center;color:#dde;overflow:hidden;background:#fff;box-shadow:0 2px 10px rgba(0,0,0,.4)}
+.mg-page .paper{transform-origin:0 0}
+.mg-side{position:absolute;top:50%;transform:translateY(-50%);width:34px;height:64px;border:0;border-radius:8px;background:rgba(255,255,255,.16);color:#fff;font-size:26px;line-height:1}
+.mg-side:first-child{left:8px} .mg-side:last-child{right:8px}
+.mg-side:hover{background:rgba(255,255,255,.3)} .mg-side:disabled{opacity:.25}
+.mg-nav{display:flex;gap:8px;align-items:center;justify-content:center;font-size:13px;color:var(--ink-2)}
+.mg-nb{width:34px;height:34px;border-radius:50%;border:1px solid var(--line-2);background:#fff;font-size:20px;line-height:1;color:var(--ink)}
+.mg-nb:disabled{opacity:.3}
+.mg-nav input{width:56px;text-align:center;font-weight:700;border:1px solid var(--line-2);border-radius:6px;padding:4px}
+.mg-ed{border:2px solid #EF9F27;background:#FAEEDA;border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:7px;position:sticky;top:0}
+.mg-ed .h{font-weight:800;color:#633806;font-size:14px}
+.mg-ed .s{font-size:12px;color:#854F0B;line-height:1.5;word-break:keep-all}
+.mg-ed .s2{font-size:12px;color:#854F0B;font-weight:700;margin-top:6px}
+.mg-ed .eb{border:1px solid #EF9F27;background:#fff;border-radius:6px;padding:7px 9px;color:#633806;font-size:13px;font-weight:700;text-align:left}
+.mg-ed .eb:hover{background:#FFF6E6} .mg-ed .eb:disabled{opacity:.4;cursor:not-allowed}
+.mg-strip{grid-column:1/-1;display:flex;gap:8px;overflow-x:auto;padding:8px 4px 4px;border-top:1px solid var(--line)}
+.mg-th{flex:none;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;position:relative}
+.mg-th .b{width:44px;height:62px;background:#fff;border:1px solid #c9ced6;border-top:4px solid #888;display:grid;place-items:center;overflow:hidden}
+.mg-th .b canvas{max-width:100%;max-height:100%}
+.mg-th .b i{font-style:normal;font-size:10px;color:#666;writing-mode:vertical-rl}
+.mg-th .l{font-size:11px;color:var(--ink-3)}
+.mg-th.on .b{outline:3px solid #EF9F27;outline-offset:1px} .mg-th.on .l{color:#854F0B;font-weight:800}
+.mg-th.drag{opacity:.4}
+.mg-th.dl::before,.mg-th.dr::after{content:'';position:absolute;top:0;width:4px;height:62px;background:#D85A30;border-radius:2px}
+.mg-th.dl::before{left:-6px} .mg-th.dr::after{right:-6px}
+.mg-lg{grid-column:1/-1;display:flex;gap:12px;flex-wrap:wrap;font-size:11.5px;color:var(--ink-3)}
+.mg-lg i{display:inline-block;width:12px;height:4px;border-radius:2px;margin-right:4px;vertical-align:middle}
+@media (max-width:1100px){.mg{grid-template-columns:1fr}.mg-ed{position:static}}
 .att .pt{font-size:11px;font-weight:700;color:var(--teal);background:var(--teal-soft);border-radius:4px;padding:1px 5px;margin-left:4px}
 .att .ops button:disabled{opacity:.3;cursor:default;background:none}
 .att.first{background:#f6f8fb;border-style:dashed}
@@ -419,12 +444,12 @@ body.inbox-on #p-rep{padding-right:420px}
         <div class="card ed" id="editor"></div>
         <div class="pv-col">
           <div class="card pv">
-            <div class="pv-h"><span>미리보기</span><span class="pvmode"><button data-pv="report" class="on">보고서</button><button data-pv="consent">동의서</button></span><span style="flex:1"></span>
+            <div class="pv-h"><span>미리보기</span><span class="pvmode"><button data-pv="report" class="on">보고서</button><button data-pv="consent">동의서</button><button data-pv="merged">병합본</button></span><span style="flex:1"></span>
               <span>이 건만</span>
               <button class="btn sm ghost" id="pvXlsx">엑셀</button>
               <button class="btn sm ghost" id="pvPdf">PDF</button>
               <button class="btn sm ghost" id="pvPrint">인쇄</button>
-              <button class="btn sm ghost" id="pvMerge" style="color:var(--navy);font-weight:700" title="병합 PDF를 미리 본 뒤 저장합니다">👁 병합 미리보기·저장</button>
+              <button class="btn sm ghost" id="pvMerge" style="color:var(--navy);font-weight:700" title="보고서 + 첨부를 한 PDF로 저장합니다 (「병합본」 탭에서 미리 확인)">📎 병합 PDF 저장</button>
             </div>
             <div class="pv-stage"><div id="pvBox"></div></div>
           </div>
@@ -1187,7 +1212,7 @@ function renderEditor(){
     </div>
     <div style="margin-top:9px">${inp('remark', v, '기타 특이사항 및 의견', {area:true, rows:3})}</div>
   </div>
-  <div class="sec"><div class="sec-t"><span class="n">5</span>추가 첨부파일 <span style="font-weight:400;color:var(--ink-3);font-size:12px">보고서 뒤에 순서대로 병합 · 순서·회전·쪽 나누기 가능</span></div>
+  <div class="sec"><div class="sec-t"><span class="n">5</span>추가 첨부파일 <span style="font-weight:400;color:var(--ink-3);font-size:12px">보고서 뒤에 병합 · 쪽 배치·회전은 오른쪽 「병합본」에서</span></div>
     <div class="att-drop" id="attDrop">PDF · 사진(JPG/PNG) 파일을 끌어다 놓거나 <button class="btn sm" id="attPick">파일 선택</button></div>
     <div class="att-list" id="attList"></div>
   </div>
@@ -1202,6 +1227,7 @@ async function renderPreview(){
   const rec = rows().find(r => r.id === cur); if (!rec) return;
   const pv = $('#pvBox'), stage = pv.parentElement;
   document.querySelectorAll('[data-pv]').forEach(b => b.classList.toggle('on', b.dataset.pv === pvMode));
+  if (pvMode === 'merged') return renderMerged();
   const html = pvMode === 'consent' ? consentHtml(view(rec), await getSigs(rec.id)) : reportHtml(view(rec));
   if (cur !== rec.id) return;
   pv.style.width = '0px'; pv.style.height = '0px';
@@ -1557,7 +1583,7 @@ function attKind(f){
 async function addAttachments(files){
   const recId = cur; if (!recId) return;
   const list = await idb.list(recId);
-  let order = list.length ? list[list.length-1].order + 1 : 1, added = 0;
+  let order = list.length ? list[list.length-1].order + 1 : 1, added = 0, firstNew = null;
   const bad = [];
   for (const f of files){
     const kind = attKind(f);
@@ -1571,37 +1597,39 @@ async function addAttachments(files){
       catch(e){ bad.push(`${f.name} (이미지를 읽을 수 없음)`); continue; }
     }
     const id = (crypto.randomUUID ? crypto.randomUUID() : Date.now() + '-' + Math.random().toString(36).slice(2));
-    try{ await idb.put({id, recId, name:f.name, kind, size:f.size, pages, order: order++, blob: f}); added++; }
+    try{ await idb.put({id, recId, name:f.name, kind, size:f.size, pages, order: order++, blob: f}); added++; firstNew = firstNew || id; }
     catch(e){ bad.push(`${f.name} (저장 실패: ${e.message})`); }
   }
   if (bad.length) alert('다음 파일은 첨부하지 못했습니다.\n\n' + bad.join('\n') + '\n\n※ 한글(hwp)·워드·엑셀 파일은 PDF로 변환한 뒤 첨부해 주세요.');
-  if (added) toast(`${added}개 파일을 첨부했습니다`);
+  if (added){ toast(`${added}개 파일을 첨부했습니다`); if (firstNew){ mgJump = firstNew; pvMode = 'merged'; renderPreview(); } }
   await refreshAttCount();
   if (cur === recId) renderAtt();
 }
-/* 병합 순서(조각) — kv 'plan:<건>' = [{k:'cf'} | {k:'a', id, s, e}] (s·e: 첨부의 0부터 쪽 번호)
-   보고서는 항상 맨 앞, 나머지(동의서·첨부 조각)는 자유롭게 순서 변경, PDF는 원하는 쪽에서 나눠 사이에 다른 자료를 끼울 수 있음 */
+/* 병합 순서 — kv 'plan:<건>' = [{k:'cf'} | {k:'p', id, pg}] (쪽 단위, pg: 첨부의 0부터 쪽 번호)
+   보고서는 항상 맨 앞(1쪽), 나머지 동의서·첨부의 각 쪽은 「병합본」 미리보기에서 자유롭게 배치 */
 const recCf = recId => view(rows().find(r => r.id === recId) || {src:{}}).cf_on === '1';
 const attPages = a => a.kind === 'pdf' ? (a.pages || 1) : 1;
 async function getPlan(recId, list){
   list = list || await idb.list(recId);
   const cf = recCf(recId), byId = Object.fromEntries(list.map(a => [a.id, a]));
-  let plan = (await idb.get('plan:' + recId).catch(() => null)) || [{k:'cf'}];
-  plan = plan.filter(p => p.k === 'cf' ? cf : !!byId[p.id]);
-  for (const a of list){
-    const n = attPages(a), ps = plan.filter(p => p.k === 'a' && p.id === a.id).sort((x, y) => x.s - y.s);
-    const ok = ps.length && ps.every((p, i) => p.s === (i ? ps[i-1].e + 1 : 0) && p.e >= p.s) && ps[ps.length-1].e === n - 1;
-    if (!ok){ plan = plan.filter(p => !(p.k === 'a' && p.id === a.id)); plan.push({k:'a', id:a.id, s:0, e:n-1}); }
+  let raw = (await idb.get('plan:' + recId).catch(() => null)) || [{k:'cf'}];
+  const plan = [], seen = new Set();
+  for (const p of raw){
+    if (p.k === 'cf'){ if (cf && !seen.has('cf')){ seen.add('cf'); plan.push({k:'cf'}); } continue; }
+    const a = byId[p.id]; if (!a) continue;
+    const pgs = p.k === 'a' ? Array.from({length: p.e - p.s + 1}, (_, i) => p.s + i) : [p.pg];   // 예전 「조각」 형식도 읽음
+    for (const pg of pgs){ const k = a.id + ':' + pg; if (pg >= 0 && pg < attPages(a) && !seen.has(k)){ seen.add(k); plan.push({k:'p', id:a.id, pg}); } }
   }
-  if (cf && !plan.some(p => p.k === 'cf')) plan.unshift({k:'cf'});
+  for (const a of list) for (let pg = 0; pg < attPages(a); pg++) if (!seen.has(a.id + ':' + pg)){ seen.add(a.id + ':' + pg); plan.push({k:'p', id:a.id, pg}); }
+  if (cf && !seen.has('cf')) plan.unshift({k:'cf'});
   return plan;
 }
-const savePlan = (recId, plan) => idb.set('plan:' + recId, plan.map(p => p.k === 'cf' ? {k:'cf'} : {k:'a', id:p.id, s:p.s, e:p.e}));
-function rotNote(a, p){
-  const r = a.rot || {}, ds = []; for (let i = p.s; i <= p.e; i++) ds.push(r[i] || 0);
-  if (ds.every(d => !d)) return '';
-  return ` · <b style="color:var(--navy)">↻ ${ds.every(d => d === ds[0]) ? ds[0] + '°' : '일부 쪽 회전'}</b>`;
-}
+const savePlan = (recId, plan) => idb.set('plan:' + recId, plan.map(p => p.k === 'cf' ? {k:'cf'} : {k:'p', id:p.id, pg:p.pg}));
+const fileKey = p => p.k === 'cf' ? 'cf' : p.id;
+// 「3, 4, 5, 8」 → 「3~5, 8」
+const rangesTxt = ns => { const o = []; for (let i = 0; i < ns.length; i++){ let j = i; while (j + 1 < ns.length && ns[j+1] === ns[j] + 1) j++; o.push(i === j ? `${ns[i]}` : `${ns[i]}~${ns[j]}`); i = j; } return o.join(', '); };
+const MG_COLORS = ['#378ADD', '#1D9E75', '#D85A30', '#D4537E', '#BA7517', '#0F6E56', '#534AB7', '#993C1D'];
+const fileColor = (list, key) => key === 'r' ? '#888780' : key === 'cf' ? '#7F77DD' : MG_COLORS[Math.max(0, list.findIndex(a => a.id === key)) % MG_COLORS.length];
 async function renderAtt(){
   const box = $('#attList'); if (!box) return;
   const recId = cur;
@@ -1609,43 +1637,177 @@ async function renderAtt(){
   const plan = await getPlan(recId, list).catch(() => []);
   if (cur !== recId || !$('#attList')) return;
   const byId = Object.fromEntries(list.map(a => [a.id, a]));
-  let pg = 2;
-  const rowsH = plan.map((p, i) => {
-    const up = `<button data-op="up" ${i===0?'disabled':''} title="위로">▲</button><button data-op="down" ${i===plan.length-1?'disabled':''} title="아래로">▼</button>`;
-    if (p.k === 'cf'){ const at = pg++; return `<div class="att" data-pi="${i}"><span class="no">${i+2}</span><div style="min-width:0"><div class="fn">✍ 안전교육 및 개인정보 동의서</div><div class="fm">1쪽 · 6번에서 작성 · 병합본 ${at}쪽</div></div><div class="ops">${up}</div></div>`; }
-    const a = byId[p.id], n = p.e - p.s + 1, whole = p.s === 0 && p.e === attPages(a) - 1, at = pg; pg += n;
-    const prev = plan[i-1], canJoin = prev && prev.k === 'a' && prev.id === p.id && prev.e + 1 === p.s;
-    const part = whole ? '' : ` <span class="pt">${p.s+1}~${p.e+1}쪽</span>`;
-    return `<div class="att${whole ? '' : ' piece'}" data-pi="${i}" data-aid="${esc(a.id)}"><span class="no">${i+2}</span>
-      <div style="min-width:0"><div class="fn" title="${esc(a.name)}">${a.kind==='pdf'?'📄':'🖼'} ${esc(a.name)}${part}</div><div class="fm">${a.kind==='pdf'?`PDF ${n}쪽${whole?'':` (전체 ${attPages(a)}쪽 중)`}`:'사진 1쪽'} · ${fmtSize(a.size)}${a.fieldId?' · 📷 현장 사진함':''}${a.stamps && a.stamps.length?` · <b style="color:var(--teal)">✍ 서명 ${a.stamps.length}개</b>`:''}${rotNote(a, p)} · 병합본 ${n > 1 ? `${at}~${at+n-1}` : at}쪽</div></div>
-      <div class="ops">${up}<button data-op="rot" title="시계 방향으로 90° 회전">↻</button>${n > 1 ? '<button data-op="split" title="원하는 쪽 뒤에서 나누기 (사이에 다른 자료를 넣을 때)">✂</button>' : ''}${canJoin ? '<button data-op="join" title="바로 위 조각과 다시 합치기">⤒</button>' : ''}${a.kind==='pdf'?'<button data-op="stamp" title="서명 붙이기" style="width:auto;padding:0 6px;color:var(--teal);font-weight:700">✍</button>':''}<button data-op="open" title="원본 열어보기">↗</button><button data-op="del" title="삭제">✕</button></div></div>`;
-  });
-  box.innerHTML = `<div class="att first"><span class="no">1</span><div><div class="fn">공급전 안전점검 결과보고서</div><div class="fm">1쪽 · 항상 맨 앞</div></div><div></div></div>` + rowsH.join('') +
-    `<div class="fm" style="display:flex;gap:8px;align-items:center;font-size:12px;color:var(--ink-3)"><span style="flex:1">▲▼ 순서 · ↻ 회전 · ✂ 쪽 나누기(사이에 다른 자료 넣기) · ⤒ 다시 합치기</span><span>병합 결과: 총 ${pg-1}쪽</span></div>`;
+  const files = []; plan.forEach((p, i) => { const k = fileKey(p); let f = files.find(x => x.k === k); if (!f) files.push(f = {k, pos: []}); f.pos.push(i + 2); });
+  box.innerHTML = `<div class="att first"><span class="no">1</span><div><div class="fn">공급전 안전점검 결과보고서</div><div class="fm">1쪽 · 항상 맨 앞</div></div><div></div></div>` +
+    files.map((f, i) => {
+      const up = `<button data-op="up" ${i===0?'disabled':''} title="파일 전체를 위로">▲</button><button data-op="down" ${i===files.length-1?'disabled':''} title="파일 전체를 아래로">▼</button>`;
+      const split = rangesTxt(f.pos).includes(',');
+      const where = `병합본 ${rangesTxt(f.pos)}쪽`, band = `style="border-left:4px solid ${fileColor(list, f.k)}"`;
+      if (f.k === 'cf') return `<div class="att" data-fk="cf" ${band}><span class="no">${i+2}</span><div style="min-width:0"><div class="fn">✍ 안전교육 및 개인정보 동의서</div><div class="fm">1쪽 · 6번에서 작성 · ${where}</div></div><div class="ops">${up}</div></div>`;
+      const a = byId[f.k], rot = Object.values(a.rot || {}).some(d => d);
+      return `<div class="att" data-fk="${esc(a.id)}" data-aid="${esc(a.id)}" ${band}><span class="no">${i+2}</span>
+      <div style="min-width:0"><div class="fn" title="${esc(a.name)}">${a.kind==='pdf'?'📄':'🖼'} ${esc(a.name)}</div><div class="fm">${a.kind==='pdf'?`PDF ${a.pages}쪽`:'사진 1쪽'} · ${fmtSize(a.size)}${a.fieldId?' · 📷 현장 사진함':''}${a.stamps && a.stamps.length?` · <b style="color:var(--teal)">✍ 서명 ${a.stamps.length}개</b>`:''}${rot?' · <b style="color:var(--navy)">↻ 회전한 쪽 있음</b>':''} · ${where}</div>${split?'<div class="fm" style="color:#185FA5;font-weight:600">사이에 다른 자료 있음</div>':''}</div>
+      <div class="ops">${up}${a.kind==='pdf'?'<button data-op="stamp" title="서명 붙이기" style="width:auto;padding:0 6px;color:var(--teal);font-weight:700">✍</button>':''}<button data-op="open" title="원본 열어보기">↗</button><button data-op="del" title="삭제">✕</button></div></div>`;
+    }).join('') +
+    `<div class="fm" style="display:flex;gap:8px;align-items:center;font-size:12px;color:var(--ink-3)"><span style="flex:1">줄을 누르면 오른쪽 「병합본」에서 그 자료를 보여 줍니다 · 쪽 배치·회전은 「병합본」에서</span><span>병합 결과: 총 ${plan.length + 1}쪽</span></div>`;
+  if (pvMode === 'merged') renderMerged();
 }
 $('#editor').addEventListener('click', async e => {
   if (e.target.id === 'attPick'){ $('#attFile').click(); return; }
-  const b = e.target.closest('[data-op]'); if (!b) return;
-  const row = b.closest('[data-pi]'); if (!row) return;
+  const row = e.target.closest('[data-fk]'); if (!row) return;
   const recId = cur, list = await idb.list(recId), plan = await getPlan(recId, list);
-  const pi = +row.dataset.pi, p = plan[pi]; if (!p) return;
-  const a = p.k === 'a' ? list.find(x => x.id === p.id) : null;
+  const key = row.dataset.fk, a = list.find(x => x.id === key);
+  const b = e.target.closest('[data-op]');
+  if (!b){ const i = plan.findIndex(p => fileKey(p) === key); if (i >= 0){ mgPage = i + 2; pvMode = 'merged'; renderPreview(); } return; }
   const op = b.dataset.op;
-  if (op === 'up' || op === 'down'){ const j = op === 'up' ? pi - 1 : pi + 1; if (j < 0 || j >= plan.length) return; [plan[pi], plan[j]] = [plan[j], plan[pi]]; await savePlan(recId, plan); }
+  if (op === 'up' || op === 'down'){
+    const order = []; plan.forEach(p => { const k = fileKey(p); if (!order.includes(k)) order.push(k); });
+    const i = order.indexOf(key), j = op === 'up' ? i - 1 : i + 1; if (j < 0 || j >= order.length) return;
+    [order[i], order[j]] = [order[j], order[i]];
+    const mixed = order.some(k => rangesTxt(plan.map((p, n) => fileKey(p) === k ? n : -1).filter(n => n >= 0)).includes(','));
+    const np = order.flatMap(k => plan.filter(p => fileKey(p) === k));
+    await savePlan(recId, np);
+    if (mixed) toast('파일 순서를 바꾸면서 사이에 끼워 둔 쪽도 파일별로 다시 모았습니다');
+    mgPage = np.findIndex(p => fileKey(p) === key) + 2;
+  }
   else if (!a) return;
-  else if (op === 'del'){ if (!confirm(`「${a.name}」 첨부를 삭제할까요?${plan.filter(x => x.id === a.id).length > 1 ? '\n(나눈 조각도 모두 함께 삭제됩니다)' : ''}`)) return; await idb.del(a.id); await refreshAttCount(); await loadFieldUsed(); setInboxCount(); renderInbox(); }
+  else if (op === 'del'){ if (!confirm(`「${a.name}」 첨부를 삭제할까요?`)) return; await idb.del(a.id); await refreshAttCount(); await loadFieldUsed(); setInboxCount(); renderInbox(); }
   else if (op === 'stamp'){ openStampEditor(a); return; }
   else if (op === 'open'){ const u = URL.createObjectURL(a.blob); window.open(u, '_blank'); setTimeout(() => URL.revokeObjectURL(u), 60000); return; }
-  else if (op === 'rot'){ a.rot = a.rot || {}; for (let k = p.s; k <= p.e; k++) a.rot[k] = ((a.rot[k] || 0) + 90) % 360; await idb.put(a); }
-  else if (op === 'split'){
-    const v = prompt(`「${a.name}」 ${p.s+1}~${p.e+1}쪽을 나눕니다.\n몇 쪽 뒤에서 나눌까요? (${p.s+1}~${p.e})\n\n예) ${p.s+Math.ceil((p.e-p.s+1)/2)} 입력 → ${p.s+1}~${p.s+Math.ceil((p.e-p.s+1)/2)}쪽 / ${p.s+Math.ceil((p.e-p.s+1)/2)+1}~${p.e+1}쪽\n나눈 뒤 ▲▼로 다른 자료를 그 사이로 옮기세요.`);
-    if (v == null) return; const k = parseInt(v, 10);
-    if (!(k >= p.s + 1 && k <= p.e)) return alert(`${p.s+1}부터 ${p.e} 사이의 쪽 번호를 입력하세요.`);
-    plan.splice(pi, 1, {k:'a', id:a.id, s:p.s, e:k-1}, {k:'a', id:a.id, s:k, e:p.e}); await savePlan(recId, plan); toast(`${p.s+1}~${k}쪽 / ${k+1}~${p.e+1}쪽으로 나눴습니다`);
-  }
-  else if (op === 'join'){ const q = plan[pi-1]; if (!q || q.id !== p.id || q.e + 1 !== p.s) return; q.e = p.e; plan.splice(pi, 1); await savePlan(recId, plan); }
   renderAtt();
 });
+
+/* ================= 병합본 미리보기 (쪽 넘기기 + 이 쪽 편집 + 끌어서 배치) ================= */
+let mgPage = 1, mgJump = null, mgRec = null, mgDrag = -1;
+const mgCache = new Map(), mgDocs = new Map();
+const imgFrom = src => new Promise((ok, no) => { const i = new Image(); i.onload = () => ok(i); i.onerror = no; i.src = src; });
+function mgDoc(a){
+  if (!mgDocs.has(a.id)) mgDocs.set(a.id, (async () => { await ensurePdfJs(); return pdfjsLib.getDocument({data: new Uint8Array(await a.blob.arrayBuffer())}).promise; })().catch(e => { mgDocs.delete(a.id); throw e; }));
+  return mgDocs.get(a.id);
+}
+// 회전 전 쪽 그림 (붙인 서명 포함) — 한 번 그린 쪽은 기억
+function mgBase(rec, a, pg){
+  const st = (a.stamps || []).filter(x => x.page === pg), key = `${a.id}:${pg}:${JSON.stringify(st)}`;
+  if (!mgCache.has(key)) mgCache.set(key, (async () => {
+    const c = document.createElement('canvas'), g = c.getContext('2d');
+    if (a.kind === 'pdf'){
+      const page = await (await mgDoc(a)).getPage(pg + 1), v1 = page.getViewport({scale: 1}), vp = page.getViewport({scale: 1400 / Math.max(v1.width, v1.height)});
+      c.width = Math.round(vp.width); c.height = Math.round(vp.height); g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height);
+      await page.render({canvasContext: g, viewport: vp}).promise;
+      for (const x of st){ const src = await sigFor(rec.id, x.role); if (src) g.drawImage(await imgFrom(src), x.x * c.width, x.y * c.height, x.w * c.width, x.h * c.height); }
+    } else {
+      const bmp = await createImageBitmap(a.blob, {imageOrientation: 'from-image'});
+      const land = bmp.width > bmp.height; c.width = land ? 1400 : 990; c.height = land ? 990 : 1400;
+      const M = 28.35 * c.width / (land ? A4[1] : A4[0]), sc = Math.min((c.width - 2*M) / bmp.width, (c.height - 2*M) / bmp.height);
+      g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height); g.drawImage(bmp, (c.width - bmp.width*sc)/2, (c.height - bmp.height*sc)/2, bmp.width*sc, bmp.height*sc); bmp.close && bmp.close();
+    }
+    return c;
+  })().catch(e => { mgCache.delete(key); throw e; }));
+  return mgCache.get(key);
+}
+function mgRotate(c, d){
+  if (!d) return c;
+  const o = document.createElement('canvas'), sw = d % 180 !== 0; o.width = sw ? c.height : c.width; o.height = sw ? c.width : c.height;
+  const g = o.getContext('2d'); g.translate(o.width/2, o.height/2); g.rotate(d * Math.PI / 180); g.drawImage(c, -c.width/2, -c.height/2); return o;
+}
+async function renderMerged(){
+  const rec = rows().find(r => r.id === cur); if (!rec) return;
+  if (mgRec !== rec.id){ mgRec = rec.id; mgCache.clear(); mgDocs.clear(); }
+  const list = await idb.list(rec.id).catch(() => []), plan = await getPlan(rec.id, list).catch(() => []);
+  if (cur !== rec.id || pvMode !== 'merged') return;
+  const byId = Object.fromEntries(list.map(a => [a.id, a])), pages = [{k:'r'}, ...plan], N = pages.length;
+  if (mgJump){ const i = plan.findIndex(p => p.id === mgJump); if (i >= 0) mgPage = i + 2; mgJump = null; }
+  mgPage = Math.min(Math.max(1, mgPage || 1), N);
+  const P = pages[mgPage - 1], a = P.k === 'p' ? byId[P.id] : null;
+  const nm = q => q.k === 'r' ? '결과보고서' : q.k === 'cf' ? '동의서' : byId[q.id].name.replace(/\.(pdf|jpe?g|png)$/i, '');
+  const label = P.k === 'r' ? '결과보고서' : P.k === 'cf' ? '안전교육 및 개인정보 동의서' : `${nm(P)} (${P.pg + 1}/${attPages(a)})`;
+  const legend = [{k:'r', n:'보고서'}, ...(plan.some(p => p.k === 'cf') ? [{k:'cf', n:'동의서'}] : []), ...list.map(x => ({k:x.id, n:x.name.replace(/\.(pdf|jpe?g|png)$/i, '')}))];
+  const pv = $('#pvBox'); pv.style.width = ''; pv.style.height = '';
+  pv.innerHTML = `<div class="mg">
+    <div class="mg-main">
+      <div class="mg-lab">👁 보기 · 쪽 넘기기 <span>(눌러도 순서는 바뀌지 않음 · 키보드 ← →)</span></div>
+      <div class="mg-view"><button class="mg-side" data-mg="prev" ${mgPage<=1?'disabled':''} aria-label="이전 쪽">‹</button><div class="mg-page" id="mgPage"><span class="spin"></span></div><button class="mg-side" data-mg="next" ${mgPage>=N?'disabled':''} aria-label="다음 쪽">›</button></div>
+      <div class="mg-nav"><button class="mg-nb" data-mg="prev" ${mgPage<=1?'disabled':''} aria-label="이전 쪽">‹</button><input id="mgNo" type="number" min="1" max="${N}" value="${mgPage}" aria-label="쪽 번호"><span>/ ${N}쪽</span><button class="mg-nb" data-mg="next" ${mgPage>=N?'disabled':''} aria-label="다음 쪽">›</button></div>
+    </div>
+    <div class="mg-ed">
+      <div class="h">✏️ 이 쪽 편집</div>
+      <div class="s"><b>${mgPage}쪽</b> · ${esc(label)}</div>
+      <button class="eb" data-mg="rot" ${P.k !== 'p' ? 'disabled' : ''}>↻ 90° 회전</button>
+      <div class="s2">이 쪽의 순서 옮기기</div>
+      <button class="eb" data-mg="swapL" ${P.k === 'r' || mgPage <= 2 ? 'disabled' : ''}>⇤ 앞 쪽과 바꾸기</button>
+      <button class="eb" data-mg="swapR" ${P.k === 'r' || mgPage >= N ? 'disabled' : ''}>뒤 쪽과 바꾸기 ⇥</button>
+      <div class="s">${P.k === 'r' ? '보고서는 항상 맨 앞이라 옮기거나 돌릴 수 없습니다.' : P.k === 'cf' ? '동의서는 돌릴 수 없고 순서만 옮길 수 있습니다.' : '또는 아래 작은 그림을 끌어서 원하는 자리에 놓으세요.'}</div>
+    </div>
+    <div class="mg-strip" id="mgStrip">${pages.map((q, i) => `<div class="mg-th${i+1===mgPage?' on':''}" data-mgi="${i}" ${i ? 'draggable="true"' : ''} title="${i+1}쪽 · ${esc(nm(q))}${q.k==='p'&&attPages(byId[q.id])>1?` ${q.pg+1}쪽`:''}"><div class="b" style="border-top-color:${fileColor(list, q.k==='p'?q.id:q.k)}">${q.k==='p'?'':`<i>${q.k==='r'?'보고서':'동의서'}</i>`}</div><div class="l">${i+1}</div></div>`).join('')}</div>
+    <div class="mg-lg">${legend.map(x => `<span><i style="background:${fileColor(list, x.k)}"></i>${esc(x.n)}</span>`).join('')}</div>
+  </div>`;
+  // 큰 화면
+  const box = $('#mgPage'), H = Math.max(420, Math.min(1000, window.innerHeight - 330));
+  if (P.k !== 'p'){
+    const html = P.k === 'cf' ? consentHtml(view(rec), await getSigs(rec.id)) : reportHtml(view(rec));
+    if (cur !== rec.id || pvMode !== 'merged') return;
+    const W0 = 793.7, H0 = 1122.5, sc = H / H0;
+    box.style.width = (W0*sc) + 'px'; box.style.height = H + 'px';
+    box.innerHTML = `<div class="paper">${html}</div>`; fitCells(box); box.firstChild.style.transform = `scale(${sc})`;
+  } else {
+    try{
+      const c = mgRotate(await mgBase(rec, a, P.pg), (a.rot || {})[P.pg] || 0);
+      if (!box.isConnected) return;
+      c.style.height = H + 'px'; c.style.width = 'auto'; c.style.maxWidth = '100%'; box.innerHTML = ''; box.appendChild(c);
+    }catch(e){ console.error(e); box.textContent = '이 쪽을 그리지 못했습니다'; }
+  }
+  // 작은 그림
+  for (const th of document.querySelectorAll('#mgStrip .mg-th')){
+    const q = pages[+th.dataset.mgi]; if (q.k !== 'p') continue;
+    mgBase(rec, byId[q.id], q.pg).then(c0 => {
+      const c = mgRotate(c0, (byId[q.id].rot || {})[q.pg] || 0), t = document.createElement('canvas'), k = 120 / Math.max(c.width, c.height);
+      t.width = Math.round(c.width * k); t.height = Math.round(c.height * k); t.getContext('2d').drawImage(c, 0, 0, t.width, t.height);
+      const b = th.querySelector('.b'); if (b && b.isConnected){ b.innerHTML = ''; b.appendChild(t); }
+    }).catch(() => {});
+  }
+  const on = document.querySelector('#mgStrip .mg-th.on'); if (on) on.scrollIntoView({block: 'nearest', inline: 'center'});
+}
+async function mgEdit(fn){
+  const recId = cur, list = await idb.list(recId), plan = await getPlan(recId, list);
+  const r = await fn(plan, list); if (r === false) return;
+  await savePlan(recId, plan); renderAtt();
+}
+$('#pvBox').addEventListener('click', async e => {
+  if (pvMode !== 'merged') return;
+  const th = e.target.closest('.mg-th'); if (th){ mgPage = +th.dataset.mgi + 1; return renderMerged(); }
+  const b = e.target.closest('[data-mg]'); if (!b || b.disabled) return;
+  const act = b.dataset.mg, i = mgPage - 2;   // plan 위치
+  if (act === 'prev' || act === 'next'){ mgPage += act === 'prev' ? -1 : 1; return renderMerged(); }
+  if (act === 'rot') return mgEdit(async (plan, list) => { const p = plan[i]; if (!p || p.k !== 'p') return false; const a = list.find(x => x.id === p.id); a.rot = a.rot || {}; a.rot[p.pg] = ((a.rot[p.pg] || 0) + 90) % 360; await idb.put(a); });
+  if (act === 'swapL') return mgEdit(plan => { if (i < 1) return false; [plan[i-1], plan[i]] = [plan[i], plan[i-1]]; mgPage--; });
+  if (act === 'swapR') return mgEdit(plan => { if (i < 0 || i >= plan.length - 1) return false; [plan[i+1], plan[i]] = [plan[i], plan[i+1]]; mgPage++; });
+});
+$('#pvBox').addEventListener('change', e => { if (e.target.id === 'mgNo'){ mgPage = parseInt(e.target.value, 10) || 1; renderMerged(); } });
+document.addEventListener('keydown', e => {
+  if (pvMode !== 'merged' || !$('#mgPage') || (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight')) return;
+  const t = e.target; if (t.closest && t.closest('input,textarea,select,[contenteditable="true"]') && t.id !== 'mgNo') return;
+  if (document.querySelector('.dl-ov,.st-ov,.sg-ov')) return;
+  e.preventDefault(); mgPage += e.key === 'ArrowLeft' ? -1 : 1; renderMerged();
+});
+// 작은 그림 끌어서 배치 (보고서 앞으로는 못 감)
+$('#pvBox').addEventListener('dragstart', e => { const th = e.target.closest && e.target.closest('.mg-th'); if (!th || th.dataset.mgi === '0') return; mgDrag = +th.dataset.mgi; e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/x-mg', String(mgDrag)); th.classList.add('drag'); });
+$('#pvBox').addEventListener('dragend', () => { mgDrag = -1; document.querySelectorAll('.mg-th').forEach(x => x.classList.remove('drag', 'dl', 'dr')); });
+const mgSide = (th, e) => { const r = th.getBoundingClientRect(); return th.dataset.mgi === '0' || e.clientX > r.left + r.width / 2 ? 'dr' : 'dl'; };
+$('#pvBox').addEventListener('dragover', e => {
+  if (mgDrag < 0) return; const th = e.target.closest && e.target.closest('.mg-th'); if (!th) return;
+  e.preventDefault(); const sd = mgSide(th, e);
+  document.querySelectorAll('.mg-th').forEach(x => { if (x !== th) x.classList.remove('dl', 'dr'); });
+  th.classList.toggle('dl', sd === 'dl'); th.classList.toggle('dr', sd === 'dr');
+});
+$('#pvBox').addEventListener('drop', e => {
+  if (mgDrag < 0) return; const th = e.target.closest && e.target.closest('.mg-th'); if (!th) return;
+  e.preventDefault();
+  const from = mgDrag, t = +th.dataset.mgi; let pos = mgSide(th, e) === 'dl' ? t : t + 1;   // pages 기준 넣을 자리
+  mgDrag = -1;
+  if (pos === from || pos === from + 1) return renderMerged();
+  mgEdit(plan => { const [m] = plan.splice(from - 1, 1); if (pos > from) pos--; plan.splice(Math.max(0, pos - 1), 0, m); mgPage = Math.max(2, pos + 1); });
+});
+
 $('#editor').addEventListener('dragover', e => { const d = e.target.closest('#attDrop'); if (d){ e.preventDefault(); e.stopPropagation(); d.classList.add('over'); } });
 $('#editor').addEventListener('dragleave', e => { const d = e.target.closest('#attDrop'); if (d) d.classList.remove('over'); });
 $('#editor').addEventListener('drop', e => { const d = e.target.closest('#attDrop'); if (!d) return; e.preventDefault(); e.stopPropagation(); d.classList.remove('over');
@@ -1673,7 +1835,7 @@ async function buildMergedPdf(rec, host){
   const jpg = await new Promise(ok => canvas.toBlob(ok, 'image/jpeg', 0.95)).then(b => b.arrayBuffer());
   const img = await out.embedJpg(jpg);
   out.addPage(A4).drawImage(img, {x:0, y:0, width:A4[0], height:A4[1]});
-  // 2) 동의서·첨부 조각 (5번 목록의 순서대로, 회전 반영)
+  // 2) 동의서·첨부의 각 쪽 (「병합본」에서 배치한 순서대로, 쪽별 회전 반영)
   const list = await idb.list(rec.id), byId = Object.fromEntries(list.map(a => [a.id, a])), srcs = {};
   const turn = (pg, d) => { if (d) pg.setRotation(PDFLib.degrees((((pg.getRotation().angle + d) % 360) + 360) % 360)); };
   for (const p of await getPlan(rec.id, list)){
@@ -1683,20 +1845,19 @@ async function buildMergedPdf(rec, host){
       out.addPage(A4).drawImage(await out.embedJpg(cj), {x:0, y:0, width:A4[0], height:A4[1]});
       continue;
     }
-    const a = byId[p.id], rot = a.rot || {};
+    const a = byId[p.id], d = (a.rot || {})[p.pg] || 0;
     if (a.kind === 'pdf'){
       const src = srcs[a.id] ||= await PDFLib.PDFDocument.load(await a.blob.arrayBuffer(), {ignoreEncryption:true});
-      const idx = []; for (let k = p.s; k <= p.e; k++) idx.push(k);
-      const pgs = await out.copyPages(src, idx), at = [];
-      pgs.forEach((pg, j) => { out.addPage(pg); at[idx[j]] = pg; });
-      if (a.stamps && a.stamps.length) await applyStamps(out, at, a.stamps.filter(st => st.page >= p.s && st.page <= p.e), rec.id);
-      pgs.forEach((pg, j) => turn(pg, rot[idx[j]]));
+      const [pg] = await out.copyPages(src, [p.pg]); out.addPage(pg);
+      const st = (a.stamps || []).filter(x => x.page === p.pg);
+      if (st.length){ const at = []; at[p.pg] = pg; await applyStamps(out, at, st, rec.id); }
+      turn(pg, d);
     } else {
       const {bytes, w, h} = await imageToJpeg(a.blob);
       const im = await out.embedJpg(bytes);
       const land = w > h, PW = land ? A4[1] : A4[0], PH = land ? A4[0] : A4[1], M = 28.35;   // 10mm 여백
       const sc = Math.min((PW - 2*M) / w, (PH - 2*M) / h), dw = w * sc, dh = h * sc;
-      const pg = out.addPage([PW, PH]); pg.drawImage(im, {x:(PW - dw)/2, y:(PH - dh)/2, width:dw, height:dh}); turn(pg, rot[0]);
+      const pg = out.addPage([PW, PH]); pg.drawImage(im, {x:(PW - dw)/2, y:(PH - dh)/2, width:dw, height:dh}); turn(pg, d);
     }
   }
   return out.save();
@@ -1804,48 +1965,8 @@ async function saveMerged(recs, pre = {}){
   }finally{ host.remove(); mergeBusy = false; }
 }
 $('#dirBtn').onclick = () => pickDir();
-$('#mergeBtn').onclick = () => { const rs = selectedRecs(); rs.length === 1 ? previewMerged(rs[0]) : saveMerged(rs); };
-// 저장 전 미리보기: 실제 저장될 PDF 그대로 보여 주고, 확인 후 저장
-async function previewMerged(rec){
-  if (mergeBusy) return;
-  mergeBusy = true;
-  const host = document.createElement('div'); host.style.cssText = 'position:fixed;left:-20000px;top:0;width:210mm'; document.body.appendChild(host);
-  let bytes;
-  try{
-    toast('미리보기 만드는 중…');
-    await Promise.all([ensurePdfLibs(), ensurePdfLib()]);
-    if (document.fonts && document.fonts.ready) await document.fonts.ready;
-    bytes = await buildMergedPdf(rec, host);
-  }catch(e){ console.error(e); alert('미리보기를 만들지 못했습니다: ' + e.message); return; }
-  finally{ host.remove(); mergeBusy = false; }
-  const n = (await PDFLib.PDFDocument.load(bytes)).getPageCount();
-  const ov = document.createElement('div'); ov.className = 'dl-ov'; ov.id = 'mpv';
-  ov.innerHTML = `<div class="dl-box" style="height:calc(100vh - 48px)"><div class="dl-h"><b>👁 병합 PDF 미리보기 — ${esc(mergedName(rec))}</b><button class="btn sm ghost" data-mp="zoom">🔍 크게 보기</button><button class="btn sm ghost" data-mp="close">✕</button></div>
-    <div class="mp-g">${Array.from({length: n}, (_, i) => `<div class="mp-p"><div class="mp-c"><span class="spin"></span></div><div class="mp-n">${i+1} / ${n}</div></div>`).join('')}</div>
-    <div class="dl-f"><span>총 <b>${n}쪽</b> · 실제 저장될 PDF 그대로입니다. 순서·회전·나누기는 닫은 뒤 「5. 추가 첨부파일」에서 바꾸고 다시 미리보기 하세요.</span><button class="btn" data-mp="close">닫기</button><button class="btn pri" data-mp="save">💾 이대로 저장</button></div></div>`;
-  document.body.appendChild(ov);
-  let alive = true;
-  const close = () => { alive = false; ov.remove(); };
-  ov.addEventListener('click', e => {
-    const b = e.target.closest('[data-mp]'); if (!b && e.target !== ov) return;
-    if (b && b.dataset.mp === 'zoom'){ const z = ov.querySelector('.mp-g').classList.toggle('big'); b.textContent = z ? '🔍 작게 보기' : '🔍 크게 보기'; return; }
-    if (b && b.dataset.mp === 'save'){ close(); return saveMerged([rec], {[rec.id]: bytes}); }
-    close();
-  });
-  // 쪽 그림 (pdf.js) — 브라우저 PDF 뷰어 설정과 관계없이 보이도록 직접 그림
-  try{
-    await ensurePdfJs();
-    const doc = await pdfjsLib.getDocument({data: bytes.slice(0)}).promise, cells = ov.querySelectorAll('.mp-c');
-    for (let i = 1; i <= doc.numPages && alive; i++){
-      const pg = await doc.getPage(i), vp1 = pg.getViewport({scale: 1}), vp = pg.getViewport({scale: 900 / Math.max(vp1.width, vp1.height)});
-      const c = document.createElement('canvas'); c.width = Math.round(vp.width); c.height = Math.round(vp.height);
-      await pg.render({canvasContext: c.getContext('2d'), viewport: vp}).promise;
-      cells[i-1].innerHTML = ''; cells[i-1].appendChild(c);
-    }
-  }catch(e){ console.error(e); ov.querySelectorAll('.mp-c .spin').forEach(x => x.parentNode.textContent = '그림을 그리지 못했습니다'); }
-}
-document.querySelectorAll('[data-pv]').forEach(b => b.onclick = () => { pvMode = b.dataset.pv; renderPreview(); });
-$('#pvMerge').onclick = () => { const r = rows().find(r=>r.id===cur); if (r) previewMerged(r); };
+$('#mergeBtn').onclick = () => saveMerged(selectedRecs());
+$('#pvMerge').onclick = () => { const r = rows().find(r=>r.id===cur); if (r) saveMerged([r]); };
 $('#attFile').onchange = e => { const fs = [...e.target.files]; e.target.value = ''; if (fs.length) addAttachments(fs); };
 
 /* ================= 현장 사진함 (기밀시험 결과지) ================= */
@@ -2068,6 +2189,7 @@ async function attachFieldPhoto(fid){
     const id = (crypto.randomUUID ? crypto.randomUUID() : Date.now() + '-' + Math.random().toString(36).slice(2));
     await idb.put({id, recId: cur, name:`${docName} (현장 ${p.label}).pdf`, kind:'pdf', size: blob.size, pages:1, order: list.length ? list[list.length-1].order + 1 : 1, blob, fieldId: fid});
     fieldUsed[fid] = view(rows().find(r => r.id === cur)).name; FieldStore.markDone(fid);
+    mgJump = id; pvMode = 'merged'; renderPreview();
     await refreshAttCount(); renderAtt(); setInboxCount(); renderInbox();
     toast(`${docName}을(를) PDF로 변환해 현재 건에 첨부했습니다${enhance ? ' (문서 보정 적용)' : ''}`);
   }catch(e){ alert(FieldStore.errMsg(e)); }
