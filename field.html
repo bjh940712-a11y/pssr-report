@@ -78,6 +78,7 @@ main{padding:16px;max-width:560px;margin:0 auto}
 .cp-l{overflow:auto;padding:0 16px 14px;display:flex;flex-direction:column;gap:8px}
 .cp-it{display:block;width:100%;text-align:left;border:1px solid var(--line);background:#fff;border-radius:10px;padding:11px 12px}
 .cp-it b{display:block;font-size:15px;color:var(--ink)}
+.cp-it b small{font-weight:400;color:var(--teal);font-size:12px}
 .cp-it span{display:block;font-size:13px;color:var(--ink-2);margin-top:2px}
 .cp-it.on{border:2px solid var(--teal);background:var(--teal-soft)}
 .cp-it.none b{color:var(--ink-3);font-weight:600}
@@ -140,6 +141,11 @@ h3 span{font-weight:400;color:var(--ink-3);font-size:13px}
 .it .st{font-size:13px;color:var(--ink-3)}
 .it .st.ok{color:var(--ok)} .it .st.err{color:var(--bad)}
 .it button{border:1px solid var(--line);background:#fff;border-radius:8px;padding:6px 10px;font-size:13px}
+.it .bs{display:flex;flex-direction:column;gap:6px}
+.it button.cc{border-color:var(--teal);color:var(--teal);font-weight:700}
+.it .cs.none{color:var(--ink-3)}
+.it .chg{font-size:12px;color:var(--ink-3)}
+.it .lock{font-size:12px;color:var(--ink-3)}
 .empty{text-align:center;color:var(--ink-3);padding:22px;font-size:14px}
 label.f{display:block;font-size:13px;font-weight:600;color:var(--ink-2);margin:12px 0 4px}
 input[type=email],input[type=password]{width:100%;border:1px solid #c9d2dd;border-radius:8px;padding:12px;font-size:16px;background:#fff}
@@ -374,6 +380,8 @@ const FieldStore = (() => {
       return d.data().data;
     },
     // PC에서 첨부·적용하면 「보고됨」 표시 (알림 대상에서 빠짐)
+    // 현장에서 잘못 고른 건 바로잡기: 건 표시(cid)만 바꿈 (보고 전·본인 자료만, 보안 규칙으로도 제한)
+    async changeCase(id, cid, prevCid){ await db.collection(META).doc(id).update({cid: cid || '', prevCid: prevCid || ''}); },
     async markDone(id){ try{ await db.collection(META).doc(id).update({done: true}); return true; }catch(e){ return false; } },
     /* --- 아침 알림 (FCM 웹 푸시) ---
        pushTokens/{토큰 해시} : uid, createdAt, ua  →  매일 09:00 GitHub Actions가 「보고하셨나요?」 알림 발송 */
@@ -768,7 +776,8 @@ function nextLabel(tag = ''){
 let cases = [], caseMap = {}, casesErr = '', curCase = null;
 try{ const c = JSON.parse(localStorage.getItem('pssr.field.case') || 'null'); if (c && c.cid && Date.now() - (c.t || 0) < 3 * 864e5) curCase = c; }catch(e){}
 const curCid = () => curCase ? curCase.cid : '';
-function caseLine(cid){ const c = cid && caseMap[cid]; return cid ? `<div class="cs">📍 ${esc(c ? c.name : '목록에 없는 건')}</div>` : ''; }
+const caseNm = cid => { const c = cid && caseMap[cid]; return cid ? (c ? c.name : '목록에 없는 건') : '건 미지정'; };
+function caseLine(cid){ return cid ? `<div class="cs">📍 ${esc(caseNm(cid))}</div>` : ''; }
 function setCase(c){
   curCase = c ? {cid: c.cid, name: c.name, addr: c.addr, t: Date.now()} : null;
   try{ c ? localStorage.setItem('pssr.field.case', JSON.stringify(curCase)) : localStorage.removeItem('pssr.field.case'); }catch(e){}
@@ -786,10 +795,13 @@ async function loadCases(){
   if (curCase && caseMap[curCase.cid]) setCase(caseMap[curCase.cid]); else if (curCase && cases.length) setCase(null);
   renderCase(); render();
 }
-function openCasePicker(){
+// opt: {title, sub, cur, none, onPick(case|null)} — 없으면 「점검 중인 건」 고르기
+function openCasePicker(opt){
+  opt = opt || {};
+  const curId = 'cur' in opt ? opt.cur : (curCase ? curCase.cid : '');
   const ov = document.createElement('div'); ov.className = 'cp';
-  ov.innerHTML = `<div class="cp-in"><div class="cp-h"><b>점검 중인 건 선택</b><button data-cp="reload">↻ 새로고침</button><button data-cp="close">닫기</button></div>
-    <input class="cp-q" type="search" placeholder="시설명·주소 검색" autocomplete="off"><div class="cp-l"></div></div>`;
+  ov.innerHTML = `<div class="cp-in"><div class="cp-h"><b>${esc(opt.title || '점검 중인 건 선택')}</b><button data-cp="reload">↻ 새로고침</button><button data-cp="close">닫기</button></div>
+    ${opt.sub ? `<div class="chg" style="padding:0 2px 6px">${esc(opt.sub)}</div>` : ''}<input class="cp-q" type="search" placeholder="시설명·주소 검색" autocomplete="off"><div class="cp-l"></div></div>`;
   document.body.appendChild(ov);
   const list = ov.querySelector('.cp-l'), q = ov.querySelector('.cp-q');
   const draw = () => {
@@ -797,8 +809,8 @@ function openCasePicker(){
     const hit = cases.filter(c => !t || (c.name + c.addr).replace(/\s/g, '').toLowerCase().includes(t));
     list.innerHTML = (casesErr ? `<div class="empty" style="color:var(--bad)">${esc(casesErr)}</div>` : '') +
       (!cases.length && !casesErr ? '<div class="empty">아직 현장 목록이 없습니다.<br>사무실 PC에서 ERP 파일을 불러온 뒤 「📤 현장 목록 보내기」를 누르면 여기에 나타납니다.</div>' : '') +
-      hit.map(c => `<button class="cp-it ${curCase && curCase.cid === c.cid ? 'on' : ''}" data-cid="${esc(c.cid)}"><b>${esc(c.name)}</b><span>${esc(c.addr)}</span><span>${esc(c.date)} · ${esc(c.kind)}</span></button>`).join('') +
-      `<button class="cp-it none" data-cid=""><b>건 지정 안 함</b><span>사무실에서 직접 건을 맞춥니다</span></button>`;
+      hit.map(c => `<button class="cp-it ${curId === c.cid ? 'on' : ''}" data-cid="${esc(c.cid)}"><b>${esc(c.name)}${curId === c.cid ? ' <small>· 현재 지정됨</small>' : ''}</b><span>${esc(c.addr)}</span><span>${esc(c.date)} · ${esc(c.kind)}</span></button>`).join('') +
+      `<button class="cp-it none" data-cid=""><b>${esc(opt.none || '건 지정 안 함')}</b><span>사무실에서 직접 건을 맞춥니다</span></button>`;
   };
   draw(); q.addEventListener('input', draw);
   ov.addEventListener('click', async e => {
@@ -807,11 +819,12 @@ function openCasePicker(){
     if (b && b.dataset.cp === 'close') return ov.remove();
     if (b && b.dataset.cp === 'reload'){ list.innerHTML = '<div class="empty"><span class="spin"></span>불러오는 중…</div>'; await loadCases(); return draw(); }
     const it = e.target.closest('[data-cid]'); if (!it) return;
+    if (opt.onPick){ ov.remove(); return opt.onPick(it.dataset.cid ? caseMap[it.dataset.cid] : null); }
     setCase(it.dataset.cid ? caseMap[it.dataset.cid] : null); ov.remove();
     toast(curCase ? `📍 ${curCase.name} 선택` : '건 지정 없이 촬영합니다');
   });
 }
-$('#casePick').onclick = openCasePicker;
+$('#casePick').onclick = () => openCasePicker();
 function renderReview(){
   const box = $('#review');
   box.classList.toggle('hidden', !review.length);
@@ -841,8 +854,8 @@ function render(){
         <div class="st ${p.err?'err':''}">${p.err ? '⚠ ' + esc(p.err) : '<span class="spin"></span>올리는 중…'}</div></div>
         ${p.err ? `<button data-retry="${p.tmp}">다시 시도</button>` : '<span></span>'}</div>`
     : `<div class="it"><img src="data:image/jpeg;base64,${p.thumb}" alt=""><div style="min-width:0"><div class="lb">${esc(p.label)}</div>${caseLine(p.cid)}
-        <div class="st ok">✓ 전송 완료 · ${hm(FieldStore.toDate(p.createdAt))}</div>${p.done ? '<div class="dn">✓ 사무실 보고 첨부됨</div>' : ''}</div>
-        <button data-del="${esc(p.id)}">삭제</button></div>`).join('')
+        <div class="st ok">✓ 전송 완료 · ${hm(FieldStore.toDate(p.createdAt))}</div>${'prevCid' in p ? `<div class="chg">건 변경됨 (${esc(caseNm(p.prevCid))} → ${esc(caseNm(p.cid))})</div>` : ''}${p.done ? '<div class="dn">✓ 사무실 보고 첨부됨</div><div class="lock">보고된 자료는 건을 바꿀 수 없습니다</div>' : ''}</div>
+        <div class="bs">${p.done ? '' : `<button class="cc" data-cc="${esc(p.id)}">${p.cid ? '건 변경' : '건 지정'}</button>`}<button data-del="${esc(p.id)}">삭제</button></div></div>`).join('')
     : '<div class="empty">아직 올린 사진이 없습니다</div>';
 }
 let allMine = [];
@@ -926,10 +939,27 @@ $('#cam').onchange = e => { const fs = [...e.target.files]; e.target.value = '';
 $('#pick').onchange = e => { const fs = [...e.target.files]; e.target.value = ''; if (fs.length) addFiles(fs); };
 $('#list').addEventListener('click', async e => {
   const r = e.target.closest('[data-retry]'); if (r){ const p = pending.find(x => x.tmp === r.dataset.retry); if (p) doUpload(p); return; }
+  const cc = e.target.closest('[data-cc]'); if (cc) return changeCaseFor(cc.dataset.cc);
   const d = e.target.closest('[data-del]'); if (!d) return;
   if (!confirm('이 사진을 서버에서 삭제할까요?')) return;
   try{ await FieldStore.remove(d.dataset.del); toast('삭제했습니다'); await refresh(); }catch(err){ toast(FieldStore.errMsg(err)); }
 });
+// 잘못 고른 건 바로잡기 (보고 전 자료만)
+async function changeCaseFor(id){
+  const p = server.find(x => x.id === id); if (!p || p.done) return;
+  if (!cases.length) await loadCases();
+  openCasePicker({title: p.cid ? '이 자료의 건 바꾸기' : '이 자료의 건 지정', sub: p.label, cur: p.cid || '', none: '건 지정 없음',
+    onPick: async c => {
+      const to = c ? c.cid : '', from = p.cid || '';
+      if (to === from) return toast('같은 건입니다');
+      try{
+        await FieldStore.changeCase(id, to, from);
+        Object.assign(p, {cid: to, prevCid: from});
+        const m = allMine.find(x => x.id === id); if (m) Object.assign(m, {cid: to, prevCid: from});
+        render(); toast(c ? `📍 ${c.name}(으)로 바꿨습니다` : '건 지정을 지웠습니다');
+      }catch(err){ toast(/permission/i.test(String(err && (err.code || err.message))) ? '이미 보고된 자료이거나 바꿀 수 없는 자료입니다' : FieldStore.errMsg(err)); await refresh(); }
+    }});
+}
 $('#inBtn').onclick = async () => {
   $('#inErr').textContent = ''; $('#inBtn').disabled = true;
   try{ await FieldStore.signIn($('#em').value.trim(), $('#pw').value); }

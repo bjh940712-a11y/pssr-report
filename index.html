@@ -629,6 +629,8 @@ const FieldStore = (() => {
       return d.data().data;
     },
     // PC에서 첨부·적용하면 「보고됨」 표시 (알림 대상에서 빠짐)
+    // 현장에서 잘못 고른 건 바로잡기: 건 표시(cid)만 바꿈 (보고 전·본인 자료만, 보안 규칙으로도 제한)
+    async changeCase(id, cid, prevCid){ await db.collection(META).doc(id).update({cid: cid || '', prevCid: prevCid || ''}); },
     async markDone(id){ try{ await db.collection(META).doc(id).update({done: true}); return true; }catch(e){ return false; } },
     /* --- 아침 알림 (FCM 웹 푸시) ---
        pushTokens/{토큰 해시} : uid, createdAt, ua  →  매일 09:00 GitHub Actions가 「보고하셨나요?」 알림 발송 */
