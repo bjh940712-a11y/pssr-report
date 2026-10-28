@@ -329,6 +329,13 @@ body.inbox-on #p-rep{padding-right:420px}
 .dr-sec{display:flex;align-items:center;gap:8px;background:var(--teal-soft,#e3f4f4);border:1px solid #bfe3e3;border-radius:8px;padding:9px 10px;margin:4px 0 10px}
 .dr-sec b{flex:1;font-size:13px;color:#0b5f61}
 .dr-sec2{font-size:12px;color:var(--ink-3);margin:16px 0 8px;font-weight:700}
+.ph.urgent{border:2.5px solid var(--bad);box-shadow:0 0 0 3px rgba(210,75,75,.15)}
+.ph .m b.urg{color:var(--bad);font-size:12px}
+.dr-done{margin-top:18px;border:1px solid var(--line);border-radius:8px;background:#f6f8fa}
+.dr-done summary{cursor:pointer;padding:10px 12px;font-size:13px;font-weight:700;color:var(--ink-2)}
+.dr-done summary span{display:block;font-weight:400;font-size:11.5px;color:var(--ink-3);margin-top:2px}
+.dr-done .ph-grid{padding:0 10px 10px}
+.dr-done .ph{opacity:.85}
 .ph .used{margin:0 8px;font-size:11.5px;color:var(--teal);font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ph .a{display:flex;gap:4px;padding:6px 8px 8px}
 .ph .a .btn{flex:1;justify-content:center;padding:4px 6px;font-size:12px}
@@ -2039,9 +2046,10 @@ function renderInbox(){
       const d = FieldStore.toDate(p.createdAt), exp = FieldStore.toDate(p.expireAt);
       const left = exp ? Math.max(0, Math.ceil((exp - Date.now()) / 864e5)) : '';
       const used = fieldUsed[p.id];
-      return `<div class="ph" draggable="true" data-fid="${esc(p.id)}">
+      const urg = fieldUrgent(p);
+      return `<div class="ph${urg ? ' urgent' : ''}${fieldDone(p) ? ' fin' : ''}" draggable="true" data-fid="${esc(p.id)}">
         <img src="data:image/jpeg;base64,${p.thumb}" data-zoom="${esc(p.id)}" alt="">
-        <div class="m">${p.kind==='doc'?'📄 ':p.kind==='sign'?'✍ ':'📷 '}<b>${esc(p.label)}</b> · ${d ? `${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}` : '전송 중'}${left!==''?` · ${left}일 후 삭제`:''}</div>
+        <div class="m">${p.kind==='doc'?'📄 ':p.kind==='sign'?'✍ ':'📷 '}<b>${esc(p.label)}</b> · ${d ? `${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}` : '전송 중'}${left!==''?(urg?` · <b class="urg">⚠ ${left}일 후 삭제</b>`:` · ${left}일 후 삭제`):''}</div>
         ${caseTag(p)}
         ${!used && p.done ? '<div class="used">✓ 보고 첨부됨</div>' : ''}
         ${used ? `<div class="used" title="${esc(used)}">✓ ${esc(used)}에 ${p.kind==='sign'?'적용':'첨부'}됨</div>` : ''}
@@ -2137,19 +2145,33 @@ function caseTag(p){
 function fieldCount(id){ return inbox.filter(p => p.cid && cidMap[p.cid] === id && !fieldUsed[p.id] && !p.done).length; }
 // 보고(첨부) 전인데 2일 안에 지워질 자료
 function dueNote(){
-  const now = Date.now(), soon = inbox.filter(p => !p.done && !fieldUsed[p.id] && FieldStore.toDate(p.expireAt) && FieldStore.toDate(p.expireAt) - now < 2 * 864e5)
+  const now = Date.now(), soon = inbox.filter(p => !p.done && !fieldUsed[p.id] && FieldStore.toDate(p.expireAt) && FieldStore.toDate(p.expireAt) - now < URGENT_MS)
     .sort((a, b) => FieldStore.toDate(a.expireAt) - FieldStore.toDate(b.expireAt));
   if (!soon.length) return '';
   const e = FieldStore.toDate(soon[0].expireAt), hhmm = `${String(e.getHours()).padStart(2,'0')}:${String(e.getMinutes()).padStart(2,'0')}`;
   return `<div class="co-warn" style="margin-top:10px">⚠️ 보고 전 자료 <b>${soon.length}건</b>이 곧 삭제됩니다 (가장 빠른 삭제 <b>${e.getMonth()+1}/${e.getDate()} ${hhmm}</b>)</div>`;
 }
+// 첨부(보고) 끝난 자료 → 아래 「첨부 완료 사진함」으로 (삭제하지 않고 따로 보관)
+const fieldDone = p => !!(fieldUsed[p.id] || p.done);
+const URGENT_MS = 3 * 864e5;   // 첨부 전인데 3일 안에 지워질 자료 = 빨간 테두리
+const fieldUrgent = p => { const e = FieldStore.toDate(p.expireAt); return !fieldDone(p) && e && e - Date.now() < URGENT_MS; };
+let doneOpen = false;
 function inboxGroups(tile){
-  const mine = cur ? inbox.filter(p => p.cid && cidMap[p.cid] === cur) : [];
-  const rest = inbox.filter(p => !mine.includes(p));
-  if (!mine.length) return `<div class="ph-grid">${rest.map(tile).join('')}</div>`;
-  const left = mine.filter(p => !fieldUsed[p.id]).length;
-  return `<div class="dr-sec"><b>📍 ${esc(caseRecName(cur))} · 현장 자료 ${mine.length}개${left < mine.length ? ` (미첨부 ${left})` : ''}</b><button class="btn sm teal" id="attachAll" ${left ? '' : 'disabled'}>이 건 자료 모두 첨부</button></div>
-    <div class="ph-grid">${mine.map(tile).join('')}</div>` + (rest.length ? `<div class="dr-sec2">다른 자료 ${rest.length}개</div><div class="ph-grid">${rest.map(tile).join('')}</div>` : '');
+  const urgentFirst = a => a.filter(fieldUrgent).sort((x, y) => FieldStore.toDate(x.expireAt) - FieldStore.toDate(y.expireAt)).concat(a.filter(p => !fieldUrgent(p)));
+  const open = urgentFirst(inbox.filter(p => !fieldDone(p))), done = inbox.filter(fieldDone);
+  const mineAll = cur ? inbox.filter(p => p.cid && cidMap[p.cid] === cur) : [];
+  const mine = open.filter(p => mineAll.includes(p)), rest = open.filter(p => !mineAll.includes(p));
+  const nUrg = open.filter(fieldUrgent).length;
+  let h = '';
+  if (mineAll.length){
+    const fin = mineAll.length - mine.length;
+    h += `<div class="dr-sec"><b>📍 ${esc(caseRecName(cur))} · 미첨부 ${mine.length}개${fin ? ` <span style="font-weight:400">(첨부 완료 ${fin}개는 아래 완료함)</span>` : ''}</b><button class="btn sm teal" id="attachAll" ${mine.length ? '' : 'disabled'}>이 건 자료 모두 첨부</button></div>` +
+      (mine.length ? `<div class="ph-grid">${mine.map(tile).join('')}</div>` : '');
+  }
+  if (rest.length) h += `<div class="dr-sec2">${mineAll.length ? '다른 미첨부 자료' : '미첨부 자료'} ${rest.length}개${nUrg ? ` · <span style="color:var(--bad)">빨간 테두리 = 3일 안에 삭제</span>` : ''}</div><div class="ph-grid">${rest.map(tile).join('')}</div>`;
+  if (!open.length) h += `<div class="empty">첨부할 자료가 없습니다 👍</div>`;
+  if (done.length) h += `<details class="dr-done" id="doneBox" ${doneOpen ? 'open' : ''}><summary>✅ 첨부 완료 사진함 <b>${done.length}개</b> <span>보고서에 첨부·적용한 자료 (서버에서 ${FieldStore.KEEP_DAYS}일 뒤 자동 삭제)</span></summary><div class="ph-grid">${done.map(tile).join('')}</div></details>`;
+  return h;
 }
 async function attachAllForCur(){
   if (!cur) return;
@@ -2201,6 +2223,7 @@ async function releaseFieldPhotos(rec){
 $('#inboxBtn').onclick = () => { $('#drawer').classList.contains('on') ? closeInbox() : openInbox(); };
 $('#drClose').onclick = closeInbox;
 $('#drOut').onclick = () => FieldStore.signOut();
+$('#drBody').addEventListener('toggle', e => { if (e.target.id === 'doneBox') doneOpen = e.target.open; }, true);
 $('#drBody').addEventListener('click', async e => {
   const t = e.target;
   if (t.id === 'goSet'){ closeInbox(); document.querySelector('.tab[data-tab=set]').click(); return; }
