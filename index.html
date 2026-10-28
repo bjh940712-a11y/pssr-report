@@ -286,6 +286,13 @@ label.f{display:block;font-size:12px;font-weight:600;color:var(--ink-2);margin-b
 .mg-ed .s2{font-size:12px;color:#854F0B;font-weight:700;margin-top:6px}
 .mg-ed .eb{border:1px solid #EF9F27;background:#fff;border-radius:6px;padding:7px 9px;color:#633806;font-size:13px;font-weight:700;text-align:left}
 .mg-ed .eb:hover{background:#FFF6E6} .mg-ed .eb:disabled{opacity:.4;cursor:not-allowed}
+.mg-ed .eb.del{border-color:var(--bad);color:var(--bad)} .mg-ed .eb.del:hover{background:#fdeeee}
+.mg-skip{grid-column:1/-1;display:flex;gap:8px;flex-wrap:wrap;align-items:center;background:#fdf1f1;border:1px dashed #e0a3a3;border-radius:8px;padding:8px 10px;font-size:12px;color:var(--ink-2)}
+.mg-skip > b{color:var(--bad);margin-right:4px}
+.mg-skip .sk{display:inline-flex;align-items:center;gap:6px;background:#fff;border:1px solid var(--line);border-radius:6px;padding:4px 6px}
+.mg-skip .sk .b{width:26px;height:36px;border:1px solid #c9ced6;border-top:3px solid #888;display:grid;place-items:center;overflow:hidden;opacity:.6}
+.mg-skip .sk .b canvas{max-width:100%;max-height:100%}
+.mg-skip .sk button{border:1px solid var(--teal);color:var(--teal);background:#fff;border-radius:5px;font-size:11.5px;font-weight:700;padding:2px 6px}
 .mg-strip{grid-column:1/-1;display:flex;gap:8px;overflow-x:auto;padding:8px 4px 4px;border-top:1px solid var(--line)}
 .mg-th{flex:none;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;position:relative}
 .mg-th .b{width:44px;height:62px;background:#fff;border:1px solid #c9ced6;border-top:4px solid #888;display:grid;place-items:center;overflow:hidden}
@@ -1620,7 +1627,7 @@ async function getPlan(recId, list){
   list = list || await idb.list(recId);
   const cf = recCf(recId), byId = Object.fromEntries(list.map(a => [a.id, a]));
   let raw = (await idb.get('plan:' + recId).catch(() => null)) || [{k:'cf'}];
-  const plan = [], seen = new Set();
+  const plan = [], seen = new Set(((await idb.get('skip:' + recId).catch(() => null)) || []).map(x => x.id + ':' + x.pg));   // 병합에서 뺀 쪽은 제외
   for (const p of raw){
     if (p.k === 'cf'){ if (cf && !seen.has('cf')){ seen.add('cf'); plan.push({k:'cf'}); } continue; }
     const a = byId[p.id]; if (!a) continue;
@@ -1631,6 +1638,13 @@ async function getPlan(recId, list){
   if (cf && !seen.has('cf')) plan.unshift({k:'cf'});
   return plan;
 }
+// 병합에서 뺀 쪽 — kv 'skip:<건>' = [{id, pg, at}] (at: 뺄 때의 위치, 되살릴 때 그 자리로)
+async function getSkip(recId, list){
+  list = list || await idb.list(recId);
+  const byId = Object.fromEntries(list.map(a => [a.id, a]));
+  return ((await idb.get('skip:' + recId).catch(() => null)) || []).filter(x => byId[x.id] && x.pg >= 0 && x.pg < attPages(byId[x.id]));
+}
+const saveSkip = (recId, sk) => idb.set('skip:' + recId, sk.map(x => ({id:x.id, pg:x.pg, at:x.at})));
 const savePlan = (recId, plan) => idb.set('plan:' + recId, plan.map(p => p.k === 'cf' ? {k:'cf'} : {k:'p', id:p.id, pg:p.pg}));
 const fileKey = p => p.k === 'cf' ? 'cf' : p.id;
 // 「3, 4, 5, 8」 → 「3~5, 8」
@@ -1641,19 +1655,21 @@ async function renderAtt(){
   const box = $('#attList'); if (!box) return;
   const recId = cur;
   const list = await idb.list(recId).catch(() => []);
-  const plan = await getPlan(recId, list).catch(() => []);
+  const plan = await getPlan(recId, list).catch(() => []), skip = await getSkip(recId, list).catch(() => []);
   if (cur !== recId || !$('#attList')) return;
   const byId = Object.fromEntries(list.map(a => [a.id, a]));
   const files = []; plan.forEach((p, i) => { const k = fileKey(p); let f = files.find(x => x.k === k); if (!f) files.push(f = {k, pos: []}); f.pos.push(i + 2); });
+  for (const x of skip) if (!files.some(f => f.k === x.id)) files.push({k: x.id, pos: []});   // 모든 쪽을 뺀 파일도 목록에 남김
+  const nSkip = id => skip.filter(x => x.id === id).length;
   box.innerHTML = `<div class="att first"><span class="no">1</span><div><div class="fn">공급전 안전점검 결과보고서</div><div class="fm">1쪽 · 항상 맨 앞</div></div><div></div></div>` +
     files.map((f, i) => {
       const up = `<button data-op="up" ${i===0?'disabled':''} title="파일 전체를 위로">▲</button><button data-op="down" ${i===files.length-1?'disabled':''} title="파일 전체를 아래로">▼</button>`;
       const split = rangesTxt(f.pos).includes(',');
-      const where = `병합본 ${rangesTxt(f.pos)}쪽`, band = `style="border-left:4px solid ${fileColor(list, f.k)}"`;
+      const where = f.pos.length ? `병합본 ${rangesTxt(f.pos)}쪽` : '<b style="color:var(--bad)">모든 쪽을 병합에서 뺌</b>', band = `style="border-left:4px solid ${fileColor(list, f.k)}"`;
       if (f.k === 'cf') return `<div class="att" data-fk="cf" ${band}><span class="no">${i+2}</span><div style="min-width:0"><div class="fn">✍ 안전교육 및 개인정보 동의서</div><div class="fm">1쪽 · 6번에서 작성 · ${where}</div></div><div class="ops">${up}</div></div>`;
       const a = byId[f.k], rot = Object.values(a.rot || {}).some(d => d);
       return `<div class="att" data-fk="${esc(a.id)}" data-aid="${esc(a.id)}" ${band}><span class="no">${i+2}</span>
-      <div style="min-width:0"><div class="fn" title="${esc(a.name)}">${a.kind==='pdf'?'📄':'🖼'} ${esc(a.name)}</div><div class="fm">${a.kind==='pdf'?`PDF ${a.pages}쪽`:'사진 1쪽'} · ${fmtSize(a.size)}${a.fieldId?' · 📷 현장 사진함':''}${a.stamps && a.stamps.length?` · <b style="color:var(--teal)">✍ 서명 ${a.stamps.length}개</b>`:''}${rot?' · <b style="color:var(--navy)">↻ 회전한 쪽 있음</b>':''} · ${where}</div>${split?'<div class="fm" style="color:#185FA5;font-weight:600">사이에 다른 자료 있음</div>':''}</div>
+      <div style="min-width:0"><div class="fn" title="${esc(a.name)}">${a.kind==='pdf'?'📄':'🖼'} ${esc(a.name)}</div><div class="fm">${a.kind==='pdf'?`PDF ${a.pages}쪽`:'사진 1쪽'} · ${fmtSize(a.size)}${a.fieldId?' · 📷 현장 사진함':''}${a.stamps && a.stamps.length?` · <b style="color:var(--teal)">✍ 서명 ${a.stamps.length}개</b>`:''}${rot?' · <b style="color:var(--navy)">↻ 회전한 쪽 있음</b>':''}${nSkip(a.id) && f.pos.length ? ` · <b style="color:var(--bad)">뺀 쪽 ${nSkip(a.id)}개</b>` : ''} · ${where}</div>${split?'<div class="fm" style="color:#185FA5;font-weight:600">사이에 다른 자료 있음</div>':''}</div>
       <div class="ops">${up}${a.kind==='pdf'?'<button data-op="stamp" title="서명 붙이기" style="width:auto;padding:0 6px;color:var(--teal);font-weight:700">✍</button>':''}<button data-op="open" title="원본 열어보기">↗</button><button data-op="del" title="삭제">✕</button></div></div>`;
     }).join('') +
     `<div class="fm" style="display:flex;gap:8px;align-items:center;font-size:12px;color:var(--ink-3)"><span style="flex:1">줄을 누르면 오른쪽 「병합본」에서 그 자료를 보여 줍니다 · 쪽 배치·회전은 「병합본」에서</span><span>병합 결과: 총 ${plan.length + 1}쪽</span></div>`;
@@ -1665,11 +1681,11 @@ $('#editor').addEventListener('click', async e => {
   const recId = cur, list = await idb.list(recId), plan = await getPlan(recId, list);
   const key = row.dataset.fk, a = list.find(x => x.id === key);
   const b = e.target.closest('[data-op]');
-  if (!b){ const i = plan.findIndex(p => fileKey(p) === key); if (i >= 0){ mgPage = i + 2; pvMode = 'merged'; renderPreview(); } return; }
+  if (!b){ const i = plan.findIndex(p => fileKey(p) === key); if (i >= 0) mgPage = i + 2; pvMode = 'merged'; renderPreview(); return; }
   const op = b.dataset.op;
   if (op === 'up' || op === 'down'){
     const order = []; plan.forEach(p => { const k = fileKey(p); if (!order.includes(k)) order.push(k); });
-    const i = order.indexOf(key), j = op === 'up' ? i - 1 : i + 1; if (j < 0 || j >= order.length) return;
+    const i = order.indexOf(key), j = op === 'up' ? i - 1 : i + 1; if (i < 0 || j < 0 || j >= order.length) return;
     [order[i], order[j]] = [order[j], order[i]];
     const mixed = order.some(k => rangesTxt(plan.map((p, n) => fileKey(p) === k ? n : -1).filter(n => n >= 0)).includes(','));
     const np = order.flatMap(k => plan.filter(p => fileKey(p) === k));
@@ -1720,7 +1736,7 @@ function mgRotate(c, d){
 async function renderMerged(){
   const rec = rows().find(r => r.id === cur); if (!rec) return;
   if (mgRec !== rec.id){ mgRec = rec.id; mgCache.clear(); mgDocs.clear(); }
-  const list = await idb.list(rec.id).catch(() => []), plan = await getPlan(rec.id, list).catch(() => []);
+  const list = await idb.list(rec.id).catch(() => []), plan = await getPlan(rec.id, list).catch(() => []), skip = await getSkip(rec.id, list).catch(() => []);
   if (cur !== rec.id || pvMode !== 'merged') return;
   const byId = Object.fromEntries(list.map(a => [a.id, a])), pages = [{k:'r'}, ...plan], N = pages.length;
   if (mgJump){ const i = plan.findIndex(p => p.id === mgJump); if (i >= 0) mgPage = i + 2; mgJump = null; }
@@ -1744,8 +1760,12 @@ async function renderMerged(){
       <button class="eb" data-mg="swapL" ${P.k === 'r' || mgPage <= 2 ? 'disabled' : ''}>⇤ 앞 쪽과 바꾸기</button>
       <button class="eb" data-mg="swapR" ${P.k === 'r' || mgPage >= N ? 'disabled' : ''}>뒤 쪽과 바꾸기 ⇥</button>
       <div class="s">${P.k === 'r' ? '보고서는 항상 맨 앞이라 옮기거나 돌릴 수 없습니다.' : P.k === 'cf' ? '동의서는 돌릴 수 없고 순서만 옮길 수 있습니다.' : '또는 아래 작은 그림을 끌어서 원하는 자리에 놓으세요.'}</div>
+      <div class="s2">불필요한 쪽</div>
+      <button class="eb del" data-mg="skip" ${P.k !== 'p' ? 'disabled' : ''}>🗑 이 쪽 빼기</button>
+      <div class="s">${P.k === 'cf' ? '동의서를 빼려면 6번의 「병합 PDF에 포함」을 끄세요.' : P.k === 'r' ? '' : '원본 파일은 그대로이고, 병합 PDF에서만 빠집니다. 아래 「뺀 쪽」에서 되살릴 수 있어요.'}</div>
     </div>
     <div class="mg-strip" id="mgStrip">${pages.map((q, i) => `<div class="mg-th${i+1===mgPage?' on':''}" data-mgi="${i}" ${i ? 'draggable="true"' : ''} title="${i+1}쪽 · ${esc(nm(q))}${q.k==='p'&&attPages(byId[q.id])>1?` ${q.pg+1}쪽`:''}"><div class="b" style="border-top-color:${fileColor(list, q.k==='p'?q.id:q.k)}">${q.k==='p'?'':`<i>${q.k==='r'?'보고서':'동의서'}</i>`}</div><div class="l">${i+1}</div></div>`).join('')}</div>
+    ${skip.length ? `<div class="mg-skip"><b>🗑 병합에서 뺀 쪽 ${skip.length}개</b>${skip.map((x, k) => `<span class="sk" data-ski="${k}"><span class="b" style="border-top-color:${fileColor(list, x.id)}"></span>${esc(byId[x.id].name.replace(/\.(pdf|jpe?g|png)$/i, ''))}${attPages(byId[x.id]) > 1 ? ` ${x.pg + 1}쪽` : ''}<button data-unskip="${k}">↩ 되살리기</button></span>`).join('')}</div>` : ''}
     <div class="mg-lg">${legend.map(x => `<span><i style="background:${fileColor(list, x.k)}"></i>${esc(x.n)}</span>`).join('')}</div>
   </div>`;
   // 큰 화면
@@ -1772,6 +1792,10 @@ async function renderMerged(){
       const b = th.querySelector('.b'); if (b && b.isConnected){ b.innerHTML = ''; b.appendChild(t); }
     }).catch(() => {});
   }
+  for (const el of document.querySelectorAll('.mg-skip .sk')){
+    const x = skip[+el.dataset.ski];
+    mgBase(rec, byId[x.id], x.pg).then(c0 => { const t = document.createElement('canvas'), k = 48 / Math.max(c0.width, c0.height); t.width = Math.round(c0.width * k); t.height = Math.round(c0.height * k); t.getContext('2d').drawImage(c0, 0, 0, t.width, t.height); const b = el.querySelector('.b'); if (b && b.isConnected){ b.innerHTML = ''; b.appendChild(t); } }).catch(() => {});
+  }
   const on = document.querySelector('#mgStrip .mg-th.on'); if (on) on.scrollIntoView({block: 'nearest', inline: 'center'});
 }
 async function mgEdit(fn){
@@ -1782,10 +1806,26 @@ async function mgEdit(fn){
 $('#pvBox').addEventListener('click', async e => {
   if (pvMode !== 'merged') return;
   const th = e.target.closest('.mg-th'); if (th){ mgPage = +th.dataset.mgi + 1; return renderMerged(); }
+  const un = e.target.closest('[data-unskip]');
+  if (un){
+    const recId = cur, list = await idb.list(recId), plan = await getPlan(recId, list), sk = await getSkip(recId, list);
+    const [x] = sk.splice(+un.dataset.unskip, 1); if (!x) return;
+    await saveSkip(recId, sk); const at = Math.min(Math.max(0, x.at || 0), plan.length);
+    plan.splice(at, 0, {k:'p', id:x.id, pg:x.pg}); await savePlan(recId, plan);
+    mgPage = at + 2; toast('되살렸습니다'); return renderAtt();
+  }
   const b = e.target.closest('[data-mg]'); if (!b || b.disabled) return;
   const act = b.dataset.mg, i = mgPage - 2;   // plan 위치
   if (act === 'prev' || act === 'next'){ mgPage += act === 'prev' ? -1 : 1; return renderMerged(); }
   if (act === 'rot') return mgEdit(async (plan, list) => { const p = plan[i]; if (!p || p.k !== 'p') return false; const a = list.find(x => x.id === p.id); a.rot = a.rot || {}; a.rot[p.pg] = ((a.rot[p.pg] || 0) + 90) % 360; await idb.put(a); });
+  if (act === 'skip'){
+    const recId = cur, list = await idb.list(recId), plan = await getPlan(recId, list), p = plan[i];
+    if (!p || p.k !== 'p') return;
+    const sk = await getSkip(recId, list); sk.push({id:p.id, pg:p.pg, at:i});
+    plan.splice(i, 1); await saveSkip(recId, sk); await savePlan(recId, plan);
+    if (mgPage > plan.length + 1) mgPage = plan.length + 1;
+    toast('이 쪽을 병합에서 뺐습니다 (아래 「뺀 쪽」에서 되살리기)'); return renderAtt();
+  }
   if (act === 'swapL') return mgEdit(plan => { if (i < 1) return false; [plan[i-1], plan[i]] = [plan[i], plan[i-1]]; mgPage--; });
   if (act === 'swapR') return mgEdit(plan => { if (i < 0 || i >= plan.length - 1) return false; [plan[i+1], plan[i]] = [plan[i], plan[i+1]]; mgPage++; });
 });
