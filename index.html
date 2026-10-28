@@ -1973,6 +1973,7 @@ async function saveMerged(recs, pre = {}){
 }
 $('#dirBtn').onclick = () => pickDir();
 $('#mergeBtn').onclick = () => saveMerged(selectedRecs());
+document.querySelectorAll('[data-pv]').forEach(b => b.onclick = () => { pvMode = b.dataset.pv; renderPreview(); });
 $('#pvMerge').onclick = () => { const r = rows().find(r=>r.id===cur); if (r) saveMerged([r]); };
 $('#attFile').onchange = e => { const fs = [...e.target.files]; e.target.value = ''; if (fs.length) addAttachments(fs); };
 
