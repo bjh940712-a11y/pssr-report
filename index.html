@@ -311,7 +311,7 @@ label.f{display:block;font-size:12px;font-weight:600;color:var(--ink-2);margin-b
 .att.first{background:#f6f8fb;border-style:dashed}
 .att.first .no{background:var(--navy);color:#fff}
 .b-att{background:#eaf0fa;color:var(--navy-2)}
-.folder{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--ink-2);border:1px dashed var(--line-2);border-radius:6px;padding:6px 10px;background:#fff;max-width:280px}
+.folder{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--ink-2);border:1px dashed var(--line-2);border-radius:6px;padding:6px 10px;background:#fff;max-width:420px}
 .folder b{color:var(--navy);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .folder:hover{border-color:var(--teal)}
 
@@ -363,6 +363,9 @@ body.inbox-on #p-rep{padding-right:420px}
 .dl-t td:empty{background:#fdf3e1}
 .dl-f{display:flex;align-items:center;gap:10px;padding:12px 20px;border-top:1px solid var(--line);font-size:13px;color:var(--ink-2)}
 .dl-f span{flex:1}
+.folder.appr{border-color:#2E9A5E;background:#eaf6ef;color:#1d6b40} .folder.appr b::after{content:' ✓ 결재 첨부 폴더';font-weight:700;color:#2E9A5E;font-size:11.5px}
+.folder.notappr b::after{content:' · 결재 폴더 아님';font-weight:600;color:#BA7517;font-size:11.5px}
+kbd{border:1px solid var(--line-2);border-bottom-width:2px;border-radius:4px;padding:0 4px;font-size:12px;background:#fff}
 .lightbox{position:fixed;inset:0;background:rgba(10,20,35,.82);z-index:60;display:flex;align-items:center;justify-content:center;padding:24px;cursor:zoom-out}
 .lightbox img{max-width:100%;max-height:100%;background:#fff;box-shadow:0 10px 40px rgba(0,0,0,.4)}
 
@@ -1954,15 +1957,47 @@ const canPickDir = 'showDirectoryPicker' in window;
 async function loadDir(){
   if (!canPickDir){ $('#dirName').textContent = '다운로드 폴더'; $('#dirBtn').title = '이 브라우저는 폴더 지정을 지원하지 않습니다 (Chrome·Edge에서 사용하세요). 다운로드 폴더에 저장됩니다.'; return; }
   try{ dirHandle = await idb.get('dir') || null; }catch(e){ dirHandle = null; }
+  showDirName();
+}
+// Teams 승인 첨부 폴더 (원드라이브) — 여기에 저장하면 결재 요청 때 「OneDrive」에서 선택만 하면 됨
+const APPROVAL_DIR = 'Approvals Document';
+const APPROVAL_PATH = '%USERPROFILE%\\OneDrive - Seorabeol City Gas Co.,Ltd(서라벌도시가스주식회사)\\Approvals Document';
+function showDirName(){
+  const ok = dirHandle && dirHandle.name === APPROVAL_DIR, b = $('#dirBtn');
   $('#dirName').textContent = dirHandle ? dirHandle.name : '미지정';
+  b.classList.toggle('appr', !!ok); b.classList.toggle('notappr', !!dirHandle && !ok);
+  b.title = ok ? 'Teams 승인 첨부 폴더(원드라이브)에 저장됩니다. 결재 요청 때 첨부 → OneDrive에서 이 파일을 선택하세요.'
+    : '병합 PDF를 저장할 폴더를 지정합니다. 원드라이브의 「Approvals Document」 폴더를 권장합니다 (결재 때 선택만 하면 됨).';
+}
+// 폴더 지정 안내: 웹 브라우저는 폴더를 직접 정해 줄 수 없어서, 폴더 창 주소창에 붙여넣도록 안내
+function dirGuide(){
+  return new Promise(ok => {
+    const ov = document.createElement('div'); ov.className = 'dl-ov';
+    ov.innerHTML = `<div class="dl-box" style="width:min(640px,100%)"><div class="dl-h"><b>📁 병합 PDF 저장 폴더 지정</b><button class="btn sm ghost" data-dg="cancel">✕</button></div>
+      <div style="padding:18px 20px;display:flex;flex-direction:column;gap:12px;font-size:14px;color:var(--ink-2);line-height:1.6">
+        <div class="dr-note" style="margin:0">⭐ <b>원드라이브의 「Approvals Document」 폴더</b>를 권장합니다. Teams 승인 요청에 올린 첨부파일이 저장되는 곳이라, 여기에 저장해 두면 결재 요청 때 <b>첨부 → OneDrive</b>에서 고르기만 하면 됩니다 (다시 올릴 필요 없음).</div>
+        <div><b>방법</b> — 아래 「주소 복사 후 폴더 선택」을 누르고, 열린 폴더 창 <b>위쪽 주소창</b>에 <kbd>Ctrl</kbd>+<kbd>V</kbd> → <kbd>Enter</kbd> → 「폴더 선택」</div>
+        <code style="display:block;background:#f3f5f8;border:1px solid var(--line);border-radius:6px;padding:8px 10px;font-size:12.5px;word-break:break-all;user-select:all">${esc(APPROVAL_PATH)}</code>
+        <div style="font-size:12.5px;color:var(--ink-3)">주소창 대신 폴더 창 왼쪽의 「OneDrive - Seorabeol City Gas…」 → 「Approvals Document」를 눌러도 됩니다. 폴더가 없으면 Teams 승인 요청에 파일을 한 번 올리면 자동으로 생깁니다.<br>※ 결재 요청 중에는 이 폴더의 파일을 덮어쓰지 마세요 (결재권자가 보는 파일이 바뀝니다).</div>
+      </div>
+      <div class="dl-f"><span></span><button class="btn" data-dg="other">다른 폴더 선택</button><button class="btn pri" data-dg="copy">📋 주소 복사 후 폴더 선택</button></div></div>`;
+    document.body.appendChild(ov);
+    ov.addEventListener('click', async e => {
+      const b = e.target.closest('[data-dg]'); if (!b && e.target !== ov) return;
+      const a = b ? b.dataset.dg : 'cancel';
+      if (a === 'copy'){ try{ await navigator.clipboard.writeText(APPROVAL_PATH); toast('주소를 복사했습니다 — 폴더 창 주소창에 붙여넣으세요'); }catch(err){} }
+      ov.remove(); ok(a === 'cancel' ? null : a);
+    });
+  });
 }
 async function pickDir(){
   if (!canPickDir){ alert('이 브라우저는 저장 폴더 지정을 지원하지 않습니다.\nChrome 또는 Edge에서 열면 폴더를 지정할 수 있습니다.\n(지금은 다운로드 폴더에 저장됩니다)'); return null; }
+  if (!(dirHandle && dirHandle.name === APPROVAL_DIR)){ if (!(await dirGuide())) return null; }
   try{
     const h = await window.showDirectoryPicker({id:'pssr-merge', mode:'readwrite', startIn: dirHandle || 'documents'});
-    dirHandle = h; $('#dirName').textContent = h.name;
+    dirHandle = h; showDirName();
     try{ await idb.set('dir', h); }catch(e){}
-    toast(`저장 폴더: ${h.name}`);
+    toast(h.name === APPROVAL_DIR ? `✓ 저장 폴더: ${h.name} (결재 때 OneDrive에서 선택)` : `저장 폴더: ${h.name} — 결재 첨부 폴더(Approvals Document)가 아닙니다`);
     return h;
   }catch(e){ if (e.name !== 'AbortError') alert('폴더를 지정하지 못했습니다: ' + e.message); return null; }
 }
