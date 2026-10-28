@@ -1,0 +1,29 @@
+name: 현장 자료 보고 알림
+
+on:
+  schedule:
+    - cron: '0 0 * * *'        # 매일 00:00 UTC = 09:00 한국시간 (GitHub 사정으로 몇~수십 분 늦을 수 있음)
+  workflow_dispatch:           # Actions 탭에서 「Run workflow」로 바로 실행해 볼 수 있음
+    inputs:
+      dry_run:
+        description: '1 = 보내지 않고 확인만'
+        default: '0'
+
+permissions:
+  contents: read
+
+jobs:
+  remind:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm install --no-save --no-audit --no-fund firebase-admin@12.7.0
+      - run: node scripts/remind.mjs
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          SITE_URL: https://bjh940712-a11y.github.io/pssr-report/
+          DRY_RUN: ${{ github.event.inputs.dry_run || '0' }}
