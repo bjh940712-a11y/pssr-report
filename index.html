@@ -841,6 +841,7 @@ const TYPES = ['신규','증설','추가','변경'];
 const USE_OPTS = ['취사난방','일반용','취사난방/일반용','산업용'];
 const PRESS_OPTS = ['저압','준저압','중압'];
 const IT_OPTS = ['입력완료','추후입력','입력예정','해당없음'];
+const ATT_DEF = {H21:true, H27:true, H27b:false, H33:true, H34:true, H36:true, H37:true};   // 첨부 자료 기본 체크
 const DEFAULTS = {mode:'자체검사', use:'취사난방', press:'저압', usage:'0.0', it:'입력완료', gis:'추후입력', result:'적합'};
 const CO_COLS = [['key','시공업체명 (ERP 표기)'],['name','상호 (보고서 표기)'],['ceo','대표자'],['addr','주소'],['reg','등록번호'],['mgr','시공관리자'],['tel','휴대폰번호'],['kind','종별']];
 
@@ -853,6 +854,7 @@ const SEED_LOCKED_EMBED = {"ver": "20261023-000000", "salt": "Syj/FpApu6i53s1en4
 let companies = store.get(KEY.co, []);            // 이 PC에서 추가·수정한 업체만 평문 보관
 if (!Array.isArray(companies)) companies = [];
 let defs = Object.assign({}, DEFAULTS, store.get(KEY.def, {}));
+defs.att = Object.assign({}, ATT_DEF, (store.get(KEY.def, {}) || {}).att || {});
 let edits = store.get(KEY.edits, {});
 let data = store.get(KEY.data, null);   // {file, loadedAt, rows:[{id, src:{}}]}
 let sel = new Set();
@@ -946,7 +948,7 @@ function view(rec){
   Object.assign(v, e);
   ATTACH.forEach(([c]) => {
     if (('a_'+c) in e) v['a_'+c] = e['a_'+c];
-    else v['a_'+c] = BOILER_ATT.includes(c) ? v.r_E28 !== '해당없음' : true;
+    else v['a_'+c] = (BOILER_ATT.includes(c) && v.r_E28 === '해당없음') ? false : !!defs.att[c];
   });
   return v;
 }
@@ -1521,7 +1523,12 @@ function renderSet(){
     f('mode','검사 구분',['자체검사','감리대상']), f('use','용도',USE_OPTS), f('press','사용압력',PRESS_OPTS),
     f('usage','최종 월사용예정량 (㎥/月)'), f('result','검사결과 기본값',['적합','부적합','해당없음']),
     f('it','사용시설 전산입력',IT_OPTS), f('gis','사용시설 GIS 입력',IT_OPTS),
-  ].join('') + `<div style="grid-column:1/-1;display:flex;gap:8px;align-items:center;border-top:1px solid var(--line);padding-top:14px">
+  ].join('') + `<div style="grid-column:1/-1;border-top:1px solid var(--line);padding-top:14px">
+    <label class="f">첨부 자료 기본 체크</label>
+    <div class="chk">${ATTACH.map(([c,l])=>`<label><input type="checkbox" data-defatt="${c}" ${defs.att[c]?'checked':''}>${esc(l)}</label>`).join('')}</div>
+    <div style="font-size:12.5px;color:var(--ink-3);margin-top:6px">체크한 항목이 새 보고서에 기본으로 표시됩니다. 건별로 직접 바꾼 체크는 그대로 유지되고, 보일러가 「해당없음」인 건은 보일러시공확인서·열변 확인증이 자동 해제됩니다.</div>
+  </div>
+  <div style="grid-column:1/-1;display:flex;gap:8px;align-items:center;border-top:1px solid var(--line);padding-top:14px">
     <button class="btn" id="defReset">초기값으로</button><span class="sp" style="flex:1"></span>
     <button class="btn ghost" id="clearEdits" style="color:var(--bad)">건별 수정 내역 전체 삭제</button></div>
   <div style="grid-column:1/-1;border-top:1px solid var(--line);padding-top:14px">
@@ -1534,9 +1541,9 @@ function renderSet(){
     <div style="display:flex;gap:8px;margin-top:8px"><button class="btn pri" id="fbSave">설정 저장</button>${FieldStore.isConfigured()?'<button class="btn ghost" id="fbClear" style="color:var(--bad)">설정 삭제</button>':''}</div>`}
   </div>`;
 }
-$('#setBox').addEventListener('change', e => { const k = e.target.dataset.def; if (!k) return; defs[k] = e.target.value; store.set(KEY.def, defs); toast('저장했습니다'); });
+$('#setBox').addEventListener('change', e => { const a = e.target.dataset.defatt; if (a){ defs.att[a] = e.target.checked; store.set(KEY.def, defs); toast('저장했습니다'); return; } const k = e.target.dataset.def; if (!k) return; defs[k] = e.target.value; store.set(KEY.def, defs); toast('저장했습니다'); });
 $('#setBox').addEventListener('click', e => {
-  if (e.target.id==='defReset'){ defs = Object.assign({}, DEFAULTS); store.set(KEY.def, defs); renderSet(); toast('초기값으로 되돌렸습니다'); }
+  if (e.target.id==='defReset'){ defs = Object.assign({}, DEFAULTS, {att: Object.assign({}, ATT_DEF)}); store.set(KEY.def, defs); renderSet(); toast('초기값으로 되돌렸습니다'); }
   if (e.target.id==='clearEdits' && confirm('모든 건의 수정 내역을 삭제할까요? (되돌릴 수 없습니다)')){ edits = {}; store.set(KEY.edits, edits); toast('삭제했습니다'); }
   if (e.target.id==='fbSave'){
     try{ const c = FieldStore.parseConfig($('#fbCfg').value); FieldStore.saveConfig(c); toast('저장했습니다. 페이지를 새로고침합니다'); setTimeout(() => location.reload(), 700); }
